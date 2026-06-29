@@ -1,0 +1,84 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gather_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  createbucket:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "sleep 5; mc alias set local http://minio:9000 minioadmin minioadmin; mc mb --ignore-existing local/gather; exit 0;"
+
+  api:
+    build: .
+    depends_on:
+      - db
+      - redis
+      - minio
+      - createbucket
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@db:5432/gather_development
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: change-me-in-production
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      S3_ENDPOINT: http://localhost:9000
+      S3_BUCKET: gather
+      S3_FORCE_PATH_STYLE: "true"
+      CLIENT_APP_URL: http://localhost:5173
+      CORS_ORIGINS: "*"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+
+  worker:
+    build: .
+    command: bundle exec sidekiq
+    depends_on:
+      - api
+      - redis
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@db:5432/gather_development
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: change-me-in-production
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: gather
+      S3_FORCE_PATH_STYLE: "true"
+    volumes:
+      - .:/app
+
+volumes:
+  pgdata:
+  miniodata:

@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: protext_gather_development
+    ports: ["5432:5432"]
+    volumes: [postgres-data:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes: [minio-data:/data]
+
+
+  createbucket:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "sleep 5; mc alias set local http://minio:9000 minioadmin minioadmin; mc mb --ignore-existing local/gather; exit 0;"
+
+  backend:
+    build: ./backend
+    # command: bash -lc "bundle install && rake db:prepare && rails server -b 0.0.0.0"
+    # command: bash -lc "bundle install && bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0"
+    command: bash -lc "bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"
+    ports: ["3000:3000"]
+    volumes:
+      - ./backend:/app
+      - bundle-cache:/usr/local/bundle
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:password@postgres:5432/protext_gather_development
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: development-secret
+      APP_URL: http://localhost:5173
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_REGION: us-east-1
+      S3_BUCKET: gather
+      S3_ENDPOINT: http://localhost:9000
+    depends_on: [postgres, redis, minio]
+
+  # worker:
+  #   build: ./backend
+  #   command: bash -lc "bundle install && bundle exec sidekiq"
+  #   volumes:
+  #     - ./backend:/app
+  #     - bundle-cache:/usr/local/bundle
+  #   environment:
+  #     RAILS_ENV: development
+  #     DATABASE_URL: postgres://postgres:password@postgres:5432/protext_gather_development
+  #     REDIS_URL: redis://redis:6379/0
+  #     JWT_SECRET: development-secret
+  #     APP_URL: http://localhost:5173
+  #     AWS_ACCESS_KEY_ID: minioadmin
+  #     AWS_SECRET_ACCESS_KEY: minioadmin
+  #     AWS_REGION: us-east-1
+  #     S3_BUCKET: protext-gather
+  #     S3_ENDPOINT: http://localhost:9000
+  #   depends_on: [backend, redis]
+
+  frontend:
+    build: ./frontend
+    command: npm run dev -- --host 0.0.0.0
+    ports: ["5173:5173"]
+    volumes:
+      - ./frontend:/app
+      - node-modules:/app/node_modules
+    environment:
+      VITE_API_URL: http://localhost:3000/api/v1
+    depends_on: [backend]
+
+volumes:
+  postgres-data:
+  minio-data:
+  bundle-cache:
+  node-modules:
