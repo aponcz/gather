@@ -8,6 +8,13 @@ export function Dashboard() {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  function getPercentComplete(invite: Invite) {
+    const totalRequestedDocuments = invite.request_items?.length || 0;
+    const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
+    if (totalRequestedDocuments === 0) return 0;
+    return Math.round((uploadedDocuments / totalRequestedDocuments) * 100);
+  }
+
   useEffect(() => {
     adminApi.listInvites().then(setInvites).catch((err) => setError(err.message));
   }, []);
@@ -26,12 +33,13 @@ export function Dashboard() {
       </div>
       <div className="card table-card">
         <table>
-          <thead><tr><th>Title</th><th>Client</th><th>Status</th><th>Due</th></tr></thead>
+          <thead><tr><th>Title</th><th>Client</th><th>Status</th><th>Complete</th><th>Due</th></tr></thead>
           <tbody>{invites.map((invite) => (
             <tr key={invite.id}>
               <td><Link to={`/invites/${invite.id}`}>{invite.title}</Link></td>
               <td>{invite.contact?.name ?? '—'}</td>
               <td><StatusBadge status={invite.status} /></td>
+              <td>{getPercentComplete(invite)}%</td>
               <td>{invite.due_at ? new Date(invite.due_at).toLocaleDateString() : '—'}</td>
             </tr>
           ))}</tbody>

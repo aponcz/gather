@@ -4,7 +4,14 @@ module Api
       before_action :authenticate_user!
 
       def index
-        render json: current_organization.invites.includes(:contact).order(created_at: :desc).as_json(include: :contact)
+        render json: current_organization.invites.includes(:contact, request_items: :uploaded_files).order(created_at: :desc).as_json(
+          include: {
+            contact: {},
+            request_items: {
+              include: :uploaded_files
+            }
+          }
+        )
       end
 
       def show

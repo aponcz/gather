@@ -21,6 +21,9 @@ export function InviteDetail() {
   if (!invite) return <div className="center-card">Loading invite…</div>;
 
   const portalUrl = invite.public_token ? `${window.location.origin}/client/invites/${invite.public_token}` : '';
+  const totalRequestedDocuments = invite.request_items?.length || 0;
+  const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
+  const percentComplete = totalRequestedDocuments > 0 ? Math.round((uploadedDocuments / totalRequestedDocuments) * 100) : 0;
 
   return <section>
     <div className="page-header">
@@ -35,6 +38,13 @@ export function InviteDetail() {
     </div>
     <div className="card">
       <h2>Requested items</h2>
+      <div className="progress-meta">
+        <span>{uploadedDocuments} of {totalRequestedDocuments} uploaded</span>
+        <strong>{percentComplete}%</strong>
+      </div>
+      <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
+        <div className="progress-fill" style={{ width: `${percentComplete}%` }} />
+      </div>
       {invite.request_items?.map(item => <div className="item-card" key={item.id}>
         <div><strong>{item.title}</strong><p className="muted">{item.description || 'No description'} {item.required ? '· required' : ''}</p></div>
         <div className="file-list">
