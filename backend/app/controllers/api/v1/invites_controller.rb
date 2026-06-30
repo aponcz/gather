@@ -34,7 +34,7 @@ module Api
         contact = current_organization.contacts.find(params.require(:contact_id))
         invite = current_organization.invites.create!(invite_params.merge(contact: contact, created_by: current_user))
         Array(params[:request_items]).each do |item|
-          invite.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required))
+          invite.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required, :section_name))
         end
         AuditLogger.log!(organization: current_organization, invite: invite, user: current_user, action: "invite.created")
         render json: invite.as_json(include: [:contact, :request_items]), status: :created
@@ -59,20 +59,25 @@ module Api
       end
 
       def download_all_files
-        uploaded_files = invite.request_items.includes(:uploaded_files).flat_map(&:uploaded_files)
+        request_items_with_files = invite.request_items.includes(:uploaded_files)
         storage_service = StorageService.new
         used_names = Hash.new(0)
 
         zip_data = Zip::OutputStream.write_buffer do |zip|
-          uploaded_files.each do |uploaded_file|
-            filename = uploaded_file.filename.presence || "file-#{uploaded_file.id}"
-            ext = File.extname(filename)
-            basename = File.basename(filename, ext)
-            used_names[filename] += 1
-            entry_name = used_names[filename] > 1 ? "#{basename}-#{used_names[filename]}#{ext}" : filename
+          request_items_with_files.each do |request_item|
+            section_name = (request_item.section_name.presence || "Requested items").strip
 
-            zip.put_next_entry(entry_name)
-            zip.write(storage_service.download(key: uploaded_file.storage_key))
+            request_item.uploaded_files.each do |uploaded_file|
+              filename = uploaded_file.filename.presence || "file-#{uploaded_file.id}"
+              ext = File.extname(filename)
+              basename = File.basename(filename, ext)
+              key = "#{section_name}/#{filename}"
+              used_names[key] += 1
+              entry_name = used_names[key] > 1 ? "#{section_name}/#{basename}-#{used_names[key]}#{ext}" : "#{section_name}/#{filename}"
+
+              zip.put_next_entry(entry_name)
+              zip.write(storage_service.download(key: uploaded_file.storage_key))
+            end
           end
         end
 

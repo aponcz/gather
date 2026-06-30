@@ -50,6 +50,8 @@ h2 { margin: 0 0 14px; font-size: 20px; }
 .badge-completed, .badge-approved { background: #eaf8ef; color: #18703b; }
 .badge-rejected, .badge-cancelled { background: #fff0f0; color: #ba1b1b; }
 .item-card, .client-item { border: 1px solid #edf1f7; border-radius: 14px; padding: 16px; margin-bottom: 12px; display: grid; gap: 12px; }
+.section-group { margin-bottom: 14px; }
+.section-title { margin: 0 0 10px; font-size: 16px; color: #29384f; }
 .file-list { display: grid; gap: 8px; }
 .uploaded-file { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px; background: #f8faff; border-radius: 10px; }
 .progress-meta { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 8px; color: #56657a; }

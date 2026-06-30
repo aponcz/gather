@@ -30,7 +30,7 @@ module Api
       end
 
       def item_params
-        params.permit(:title, :description, :kind, :status, :due_at, :required)
+        params.permit(:title, :description, :kind, :status, :due_at, :required, :section_name)
       end
     end
   end

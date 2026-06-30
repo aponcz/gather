@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import * as clientApi from '../api/clientPortal';
-import { Invite } from '../types';
+import { Invite, RequestItem } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 
 export function ClientInvite() {
@@ -41,6 +41,12 @@ export function ClientInvite() {
   const totalRequestedDocuments = invite.request_items?.length || 0;
   const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
   const percentComplete = totalRequestedDocuments > 0 ? Math.round((uploadedDocuments / totalRequestedDocuments) * 100) : 0;
+  const groupedRequestedItems = (invite.request_items || []).reduce<Record<string, RequestItem[]>>((groups, item) => {
+    const sectionName = item.section_name?.trim() || 'Requested items';
+    if (!groups[sectionName]) groups[sectionName] = [];
+    groups[sectionName].push(item);
+    return groups;
+  }, {});
 
   return <section className="client-page">
     <div className="client-header" style={{ borderColor: invite.brand_color || undefined }}>
@@ -58,15 +64,18 @@ export function ClientInvite() {
       <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
         <div className="progress-fill" style={{ width: `${percentComplete}%` }} />
       </div>
-      {invite.request_items?.map(item => <div className="client-item" key={item.id}>
-        <div><strong>{item.title}</strong><p className="muted">{item.description || 'Upload the requested file.'}</p></div>
-        <div>
-          <input type="file" onChange={(event) => handleFile(item.id, event)} disabled={uploading === item.id} />
-          {uploading === item.id && <span className="muted">Uploading…</span>}
-        </div>
-        <div className="file-list">
-          {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}><span>{file.filename}</span><StatusBadge status={file.status} /><button className="secondary" onClick={() => downloadFile(file.id)}>Download</button></div>)}
-        </div>
+      {Object.keys(groupedRequestedItems).map((sectionName) => <div className="section-group" key={sectionName}>
+        <h3 className="section-title">{sectionName}</h3>
+        {groupedRequestedItems[sectionName].map(item => <div className="client-item" key={item.id}>
+          <div><strong>{item.title}</strong><p className="muted">{item.description || 'Upload the requested file.'}</p></div>
+          <div>
+            <input type="file" onChange={(event) => handleFile(item.id, event)} disabled={uploading === item.id} />
+            {uploading === item.id && <span className="muted">Uploading…</span>}
+          </div>
+          <div className="file-list">
+            {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}><span>{file.filename}</span><StatusBadge status={file.status} /><button className="secondary" onClick={() => downloadFile(file.id)}>Download</button></div>)}
+          </div>
+        </div>)}
       </div>)}
     </div>
   </section>;
