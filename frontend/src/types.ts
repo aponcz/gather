@@ -17,6 +17,7 @@ export type UploadedFile = {
 
 export type RequestItem = {
   id: number;
+  section_name?: string | null;
   title: string;
   description?: string | null;
   kind: 'document' | 'form' | 'signature';

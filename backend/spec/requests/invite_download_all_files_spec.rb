@@ -76,8 +76,66 @@ RSpec.describe 'Invite download all files', type: :request do
       end
 
       expect(files).to eq(
-        'file-1.pdf' => 'content-one',
-        'file-2.pdf' => 'content-two'
+        'Requested items/file-1.pdf' => 'content-one',
+        'Requested items/file-2.pdf' => 'content-two'
+      )
+    end
+
+    it 'organizes files into section folders' do
+      # Create request items with different sections
+      financial_item = RequestItem.create!(
+        invite: invite,
+        title: 'Financial Statements',
+        kind: 'document',
+        required: true,
+        section_name: 'Financial Statements'
+      )
+
+      personal_item = RequestItem.create!(
+        invite: invite,
+        title: 'Personal ID',
+        kind: 'document',
+        required: true,
+        section_name: 'Personal Information'
+      )
+
+      financial_file = UploadedFile.create!(
+        request_item: financial_item,
+        uploaded_by_contact: contact,
+        storage_key: 'org-1/invite-1/request-2/statement.pdf',
+        filename: 'statement.pdf',
+        content_type: 'application/pdf'
+      )
+
+      personal_file = UploadedFile.create!(
+        request_item: personal_item,
+        uploaded_by_contact: contact,
+        storage_key: 'org-1/invite-1/request-3/id.pdf',
+        filename: 'id.pdf',
+        content_type: 'application/pdf'
+      )
+
+      allow_any_instance_of(StorageService).to receive(:download).with(key: financial_file.storage_key).and_return('financial-content')
+      allow_any_instance_of(StorageService).to receive(:download).with(key: personal_file.storage_key).and_return('personal-content')
+      allow_any_instance_of(StorageService).to receive(:download).with(key: uploaded_file_one.storage_key).and_return('content-one')
+      allow_any_instance_of(StorageService).to receive(:download).with(key: uploaded_file_two.storage_key).and_return('content-two')
+
+      get "/api/v1/invites/#{invite.id}/download_all_files", headers: headers
+
+      expect(response).to have_http_status(:ok)
+
+      files = {}
+      Zip::File.open_buffer(response.body) do |zip|
+        zip.each do |entry|
+          files[entry.name] = entry.get_input_stream.read
+        end
+      end
+
+      expect(files).to eq(
+        'Requested items/file-1.pdf' => 'content-one',
+        'Requested items/file-2.pdf' => 'content-two',
+        'Financial Statements/statement.pdf' => 'financial-content',
+        'Personal Information/id.pdf' => 'personal-content'
       )
     end
 

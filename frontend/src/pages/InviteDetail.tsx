@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import * as adminApi from '../api/admin';
-import { Invite, UploadedFile } from '../types';
+import { Invite, RequestItem, UploadedFile } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 
 export function InviteDetail() {
@@ -32,6 +32,12 @@ export function InviteDetail() {
   const totalRequestedDocuments = invite.request_items?.length || 0;
   const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
   const percentComplete = totalRequestedDocuments > 0 ? Math.round((uploadedDocuments / totalRequestedDocuments) * 100) : 0;
+  const groupedRequestedItems = (invite.request_items || []).reduce<Record<string, RequestItem[]>>((groups, item) => {
+    const sectionName = item.section_name?.trim() || 'Requested items';
+    if (!groups[sectionName]) groups[sectionName] = [];
+    groups[sectionName].push(item);
+    return groups;
+  }, {});
 
   return <section>
     <div className="page-header">
@@ -56,17 +62,20 @@ export function InviteDetail() {
       <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
         <div className="progress-fill" style={{ width: `${percentComplete}%` }} />
       </div>
-      {invite.request_items?.map(item => <div className="item-card" key={item.id}>
-        <div><strong>{item.title}</strong><p className="muted">{item.description || 'No description'} {item.required ? '· required' : ''}</p></div>
-        <div className="file-list">
-          {(item.uploaded_files || []).length === 0 && <span className="muted">No files uploaded yet.</span>}
-          {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}>
-            <span>{file.filename}</span><StatusBadge status={file.status} />
-            <button className="secondary" onClick={() => download(file)}>Download</button>
-            <button className="secondary" onClick={() => approve(file)}>Approve</button>
-            <button className="danger" onClick={() => reject(file)}>Reject</button>
-          </div>)}
-        </div>
+      {Object.keys(groupedRequestedItems).map((sectionName) => <div className="section-group" key={sectionName}>
+        <h3 className="section-title">{sectionName}</h3>
+        {groupedRequestedItems[sectionName].map(item => <div className="item-card" key={item.id}>
+          <div><strong>{item.title}</strong><p className="muted">{item.description || 'No description'} {item.required ? '· required' : ''}</p></div>
+          <div className="file-list">
+            {(item.uploaded_files || []).length === 0 && <span className="muted">No files uploaded yet.</span>}
+            {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}>
+              <span>{file.filename}</span><StatusBadge status={file.status} />
+              <button className="secondary" onClick={() => download(file)}>Download</button>
+              <button className="secondary" onClick={() => approve(file)}>Approve</button>
+              <button className="danger" onClick={() => reject(file)}>Reject</button>
+            </div>)}
+          </div>
+        </div>)}
       </div>)}
     </div>
     <div className="card">

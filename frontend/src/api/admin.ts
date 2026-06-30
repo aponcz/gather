@@ -42,7 +42,7 @@ export function createInvite(payload: {
   title: string;
   message?: string;
   due_at?: string;
-  request_items: Array<{ title: string; description?: string; kind: string; required: boolean }>;
+  request_items: Array<{ title: string; description?: string; kind: string; required: boolean; section_name?: string }>;
 }) {
   return apiFetch<Invite>('/api/v1/invites', { method: 'POST', body: JSON.stringify(payload) });
 }
