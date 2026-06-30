@@ -55,5 +55,33 @@ export type User = {
   id: number;
   name: string;
   email: string;
-  organization_id?: number;
+  role?: 'owner' | 'admin' | 'member';
+  company_id?: number;
+};
+
+export type CompanyMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'admin' | 'member';
+  created_at: string;
+  invitation_status: 'pending' | 'accepted';
+};
+
+export type Company = {
+  id: string;
+  name: string;
+  phone_number?: string | null;
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+  website?: string | null;
+  subdomain?: string | null;
+  logo?: string | null;
+  trial_started_on?: string | null;
+  activated_on?: string | null;
+  delinquent_on?: string | null;
+  suspended_on?: string | null;
 };

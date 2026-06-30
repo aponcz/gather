@@ -6,7 +6,7 @@ module Api
 
         def request_magic_link
           contact = Contact.find_by!(email: params.require(:email).downcase)
-          token = JwtService.encode({ contact_id: contact.id, organization_id: contact.organization_id, type: "client_magic" }, expires_in: 20.minutes)
+          token = JwtService.encode({ contact_id: contact.id, company_id: contact.company_id, type: "client_magic" }, expires_in: 20.minutes)
           # In production, email this token as a link instead of returning it.
           render json: { magic_token: token }
         end
@@ -16,7 +16,7 @@ module Api
           return render(json: { error: "wrong_token_type" }, status: :unauthorized) unless payload["type"] == "client_magic"
 
           contact = Contact.find(payload.fetch("contact_id"))
-          session_token = JwtService.encode({ contact_id: contact.id, organization_id: contact.organization_id, type: "client" }, expires_in: 7.days)
+          session_token = JwtService.encode({ contact_id: contact.id, company_id: contact.company_id, type: "client" }, expires_in: 7.days)
           render json: { token: session_token, contact: contact }
         rescue JWT::DecodeError, ActiveRecord::RecordNotFound, KeyError
           render json: { error: "invalid_magic_token" }, status: :unauthorized
@@ -25,14 +25,14 @@ module Api
         def show_invite
           invite = find_accessible_invite(params[:id])
           invite.viewed! if invite.sent?
-          AuditLogger.log!(organization: invite.organization, invite: invite, contact: @current_contact, action: "invite.viewed", metadata: { ip_address: request.remote_ip, user_agent: request.user_agent })
+          AuditLogger.log!(company: invite.company, invite: invite, contact: @current_contact, action: "invite.viewed", metadata: { ip_address: request.remote_ip, user_agent: request.user_agent })
           render json: invite.as_json(include: { contact: {}, contacts: {}, request_items: { include: :uploaded_files } })
         end
 
         def create_upload_url
           invite = find_accessible_invite_by_request_item(params[:id])
           item = invite.request_items.find(params[:id])
-          key = "org-#{item.organization.id}/invite-#{item.invite.id}/request-#{item.id}/#{SecureRandom.uuid}-#{params.require(:filename)}"
+          key = "company-#{item.company.id}/invite-#{item.invite.id}/request-#{item.id}/#{SecureRandom.uuid}-#{params.require(:filename)}"
           url = StorageService.new.presigned_upload_url(key: key, content_type: params.require(:content_type))
           render json: { upload_url: url, storage_key: key }
         end
@@ -47,7 +47,7 @@ module Api
             content_type: params.require(:content_type),
             byte_size: params[:byte_size]
           )
-          AuditLogger.log!(organization: item.organization, invite: item.invite, contact: @current_contact, action: "file.uploaded", metadata: { uploaded_file_id: file.id, filename: file.filename })
+          AuditLogger.log!(company: item.company, invite: item.invite, contact: @current_contact, action: "file.uploaded", metadata: { uploaded_file_id: file.id, filename: file.filename })
           render json: file, status: :created
         end
 

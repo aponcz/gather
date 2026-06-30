@@ -8,7 +8,7 @@ class ReminderJob < ApplicationJob
 
     InviteMailer.with(invite: reminder.invite).reminder_email.deliver_now if reminder.email?
     reminder.update!(status: :sent, sent_at: Time.current)
-    AuditLogger.log!(organization: reminder.invite.organization, invite: reminder.invite, action: "reminder.sent", metadata: { channel: reminder.channel })
+    AuditLogger.log!(company: reminder.invite.company, invite: reminder.invite, action: "reminder.sent", metadata: { channel: reminder.channel })
   rescue StandardError => e
     reminder&.update!(status: :failed, error_message: e.message)
     raise

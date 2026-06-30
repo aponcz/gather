@@ -1,6 +1,6 @@
 class StorageService
   def initialize
-    @bucket = ENV.fetch("S3_BUCKET", "fileinvite")
+    @bucket = ENV.fetch("S3_BUCKET", "gather")
     @client = Aws::S3::Client.new(
       region: ENV.fetch("AWS_REGION", "us-east-1"),
       endpoint: ENV["S3_ENDPOINT"],

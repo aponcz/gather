@@ -50,7 +50,7 @@ export function ClientInvite() {
 
   return <section className="client-page">
     <div className="client-header" style={{ borderColor: invite.brand_color || undefined }}>
-      {invite.logo_url && <img src={invite.logo_url} alt="Organization logo" />}
+      {invite.logo_url && <img src={invite.logo_url} alt="Company logo" />}
       <h1>{invite.title}</h1>
       <p>{invite.message}</p>
       {invite.due_at && <p className="muted">Due {new Date(invite.due_at).toLocaleDateString()}</p>}

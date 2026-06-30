@@ -6,11 +6,11 @@ default: &default
 
 development:
   <<: *default
-  database: fileinvite_development
+  database: gather_development
 
 test:
   <<: *default
-  database: fileinvite_test
+  database: gather_test
 
 production:
   <<: *default

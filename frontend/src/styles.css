@@ -35,6 +35,9 @@ h2 { margin: 0 0 14px; font-size: 20px; }
 .auth-page, .client-page { min-height: 100vh; display: grid; place-items: center; padding: 30px; }
 .auth-card { width: 100%; max-width: 520px; display: grid; gap: 16px; }
 .form-stack { display: grid; gap: 16px; }
+.company-tabs { display: flex; border-bottom: 1px solid #e7ebf3; }
+.company-tab { border: 0; background: transparent; color: #69778d; font-weight: 700; padding: 10px 14px; border-bottom: 2px solid transparent; }
+.company-tab-active { color: #2858d8; border-bottom-color: #2858d8; }
 .error { background: #fff1f0; color: #a8071a; border: 1px solid #ffccc7; padding: 11px 13px; border-radius: 10px; }
 .stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
 .stats-grid .card { display: grid; gap: 8px; }

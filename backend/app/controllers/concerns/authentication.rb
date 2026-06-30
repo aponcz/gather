@@ -2,7 +2,7 @@ module Authentication
   extend ActiveSupport::Concern
 
   included do
-    attr_reader :current_user, :current_organization
+    attr_reader :current_user, :current_company, :current_membership
   end
 
   def authenticate_user!
@@ -12,7 +12,15 @@ module Authentication
 
     payload = JwtService.decode(token)
     @current_user = User.find(payload.fetch("sub"))
-    @current_organization = @current_user.organization
+    requested_company_id = payload["company_id"]
+    @current_company = if requested_company_id.present?
+      @current_user.companies.find(requested_company_id)
+    else
+      @current_user.companies.first || @current_user.company
+    end
+    raise ActiveRecord::RecordNotFound if @current_company.blank?
+
+    @current_membership = @current_user.membership_for(@current_company)
   rescue JWT::DecodeError, ActiveRecord::RecordNotFound, KeyError
     render json: { error: "invalid_token" }, status: :unauthorized
   end
@@ -26,7 +34,7 @@ module Authentication
     return render(json: { error: "wrong_token_type" }, status: :unauthorized) unless payload["type"] == "client"
 
     @current_contact = Contact.find(payload.fetch("contact_id"))
-    @current_organization = @current_contact.organization
+    @current_company = @current_contact.company
   rescue JWT::DecodeError, ActiveRecord::RecordNotFound, KeyError
     render json: { error: "invalid_token" }, status: :unauthorized
   end

@@ -3,6 +3,12 @@
     "docker compose": true,
     ":": true,
     "bundle": true,
-    "true": true
+    "true": true,
+    "/^cd /Users/aponcz/Projects/gather/frontend && npm run build$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "npm install": true,
+    "mkdir": true
   }
 }

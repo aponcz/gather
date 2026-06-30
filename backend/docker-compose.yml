@@ -50,19 +50,21 @@ services:
       AWS_ACCESS_KEY_ID: minioadmin
       AWS_SECRET_ACCESS_KEY: minioadmin
       S3_ENDPOINT: http://localhost:9000
-      S3_INTERNAL_ENDPOINT: http::9000
+      S3_INTERNAL_ENDPOINT: http://minio:9000
       S3_BUCKET: gather
       S3_FORCE_PATH_STYLE: "true"
       CLIENT_APP_URL: http://localhost:5173
       CORS_ORIGINS: "*"
+    command: bash -lc "bundle check || bundle install && bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"
     ports:
       - "3000:3000"
     volumes:
       - .:/app
+      - bundle-cache:/usr/local/bundle
 
   worker:
     build: .
-    command: bundle exec sidekiq
+    command: bash -lc "bundle check || bundle install && bundle exec sidekiq"
     depends_on:
       - api
       - redis
@@ -79,7 +81,9 @@ services:
       S3_FORCE_PATH_STYLE: "true"
     volumes:
       - .:/app
+      - bundle-cache:/usr/local/bundle
 
 volumes:
   pgdata:
   miniodata:
+  bundle-cache:
