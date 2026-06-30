@@ -1,7 +1,8 @@
 class InviteMailer < ApplicationMailer
   def invite_email
     @invite = params[:invite]
-    mail(to: @invite.contact.email, subject: "Document request: #{@invite.title}") do |format|
+    @contact = params[:contact] || @invite.contact
+    mail(to: @contact.email, subject: "Document request: #{@invite.title}") do |format|
       format.text { render plain: "Please complete your request: #{client_url(@invite)}" }
     end
   end

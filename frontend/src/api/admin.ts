@@ -47,8 +47,25 @@ export function createInvite(payload: {
   return apiFetch<Invite>('/api/v1/invites', { method: 'POST', body: JSON.stringify(payload) });
 }
 
-export function sendInvite(id: number) {
+export function bulkCreateInvites(payload: {
+  contact_ids: string[];
+  title: string;
+  message?: string;
+  due_at?: string;
+  request_items: Array<{ title: string; description?: string; kind: string; required: boolean; section_name?: string }>;
+}) {
+  return apiFetch<{ invite: Invite; contact_count: number; message: string }>('/api/v1/invites/bulk_create', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export function sendInvite(id: string | number) {
   return apiFetch<{ status: string; invite: Invite }>(`/api/v1/invites/${id}/send_invite`, { method: 'POST' });
+}
+
+export function addInviteContacts(id: string | number, contact_ids: string[]) {
+  return apiFetch<{ invite: Invite; added_contact_count: number }>(`/api/v1/invites/${id}/add_contacts`, {
+    method: 'POST',
+    body: JSON.stringify({ contact_ids })
+  });
 }
 
 export function cancelInvite(id: number) {

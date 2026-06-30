@@ -55,6 +55,7 @@ admin@example.com / password123
 - `POST /api/v1/contacts`
 - `GET /api/v1/invites`
 - `POST /api/v1/invites`
+- `POST /api/v1/invites/bulk_create`
 - `POST /api/v1/invites/:id/send_invite`
 - `POST /api/v1/uploaded_files/:id/approve`
 - `POST /api/v1/uploaded_files/:id/reject`

@@ -17,33 +17,105 @@ module Api
       end
 
       def show
-        # binding.pry
-        # render json: invite.as_json(include: [:contact, :request_items, :audit_events])
         render json: invite.as_json(
-  include: {
-    contact: {},
-    audit_events: {},
-    request_items: {
-      include: :uploaded_files
-    }
-  }
-)
+          include: {
+            contact: {},
+            contacts: {},
+            audit_events: {
+              methods: :actor_email
+            },
+            request_items: {
+              include: :uploaded_files
+            }
+          }
+        ).merge(
+          "audit_events" => invite.audit_events.order(created_at: :desc).map { |audit_event| audit_event.as_json(methods: :actor_email) }
+        )
       end
 
       def create
         contact = current_organization.contacts.find(params.require(:contact_id))
         invite = current_organization.invites.create!(invite_params.merge(contact: contact, created_by: current_user))
-        Array(params[:request_items]).each do |item|
-          invite.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required, :section_name))
-        end
+        invite.invite_contacts.create!(contact: contact) unless invite.invite_contacts.exists?(contact: contact)
+        create_request_items!(invite)
         AuditLogger.log!(organization: current_organization, invite: invite, user: current_user, action: "invite.created")
-        render json: invite.as_json(include: [:contact, :request_items]), status: :created
+        render json: invite.as_json(include: [:contact, { contacts: {} }, :request_items]), status: :created
+      end
+
+      def bulk_create
+        contact_ids = Array(params[:contact_ids]).map(&:to_s).reject(&:blank?).uniq
+        raise ActionController::ParameterMissing, :contact_ids if contact_ids.empty?
+
+        contacts = current_organization.contacts.where(id: contact_ids).index_by { |contact| contact.id.to_s }
+        missing_contact_ids = contact_ids - contacts.keys
+        return render json: { error: "contacts_not_found", contact_ids: missing_contact_ids }, status: :unprocessable_entity if missing_contact_ids.any?
+
+        created_invite = Invite.transaction do
+          primary_contact = contacts.fetch(contact_ids.first)
+          invite = current_organization.invites.create!(invite_params.merge(contact: primary_contact, created_by: current_user))
+          create_request_items!(invite)
+
+          contact_ids.each do |contact_id|
+            invite.invite_contacts.create!(contact: contacts.fetch(contact_id))
+          end
+
+          invite.sent! unless invite.sent?
+          contact_ids.each do |contact_id|
+            SendInviteJob.perform_later(invite.id)
+          end
+          AuditLogger.log!(organization: current_organization, invite: invite, user: current_user, action: "invite.created", metadata: { bulk_contact_count: contact_ids.length })
+          invite
+        end
+
+        render json: {
+          invite: created_invite.as_json(include: [:contact, { contacts: {} }, :request_items]),
+          contact_count: contact_ids.length,
+          message: "Invite created and sent to #{contact_ids.length} contacts"
+        }, status: :created
       end
 
       def update
         invite.update!(invite_params)
         AuditLogger.log!(organization: current_organization, invite: invite, user: current_user, action: "invite.updated")
         render json: invite
+      end
+
+      def add_contacts
+        contact_ids = Array(params[:contact_ids]).map(&:to_s).reject(&:blank?).uniq
+        raise ActionController::ParameterMissing, :contact_ids if contact_ids.empty?
+
+        contacts = current_organization.contacts.where(id: contact_ids).index_by { |contact| contact.id.to_s }
+        missing_contact_ids = contact_ids - contacts.keys
+        return render json: { error: "contacts_not_found", contact_ids: missing_contact_ids }, status: :unprocessable_entity if missing_contact_ids.any?
+
+        added_contacts = []
+
+        Invite.transaction do
+          contact_ids.each do |contact_id|
+            contact = contacts.fetch(contact_id)
+            next if invite.invite_contacts.exists?(contact_id: contact.id)
+
+            invite.invite_contacts.create!(contact: contact)
+            added_contacts << contact
+          end
+
+          added_contacts.each do |contact|
+            SendInviteJob.perform_later(invite.id, contact.id)
+          end
+
+          AuditLogger.log!(
+            organization: current_organization,
+            invite: invite,
+            user: current_user,
+            action: "invite.contacts_added",
+            metadata: { added_contact_count: added_contacts.length }
+          )
+        end
+
+        render json: {
+          invite: invite.as_json(include: [:contact, { contacts: {} }, :request_items]),
+          added_contact_count: added_contacts.length
+        }
       end
 
       def send_invite
@@ -94,6 +166,12 @@ module Api
 
       def invite_params
         params.permit(:title, :message, :due_at, :brand_color, :logo_url)
+      end
+
+      def create_request_items!(invite)
+        Array(params[:request_items]).each do |item|
+          invite.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required, :section_name))
+        end
       end
     end
   end

@@ -32,11 +32,13 @@ export type Invite = {
   title: string;
   message?: string | null;
   status: 'draft' | 'sent' | 'viewed' | 'completed' | 'cancelled';
+  created_at?: string;
   due_at?: string | null;
   public_token?: string;
   brand_color?: string | null;
   logo_url?: string | null;
   contact?: Contact;
+  contacts?: Contact[];
   request_items?: RequestItem[];
   audit_events?: AuditEvent[];
 };
@@ -44,6 +46,7 @@ export type Invite = {
 export type AuditEvent = {
   id: number;
   action: string;
+  actor_email?: string | null;
   metadata?: Record<string, unknown>;
   created_at: string;
 };

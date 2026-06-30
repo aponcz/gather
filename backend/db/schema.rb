@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_30_010000) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_30_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -43,6 +43,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_30_010000) do
     t.datetime "updated_at", null: false
     t.index ["organization_id", "email"], name: "index_contacts_on_organization_id_and_email", unique: true
     t.index ["organization_id"], name: "index_contacts_on_organization_id"
+  end
+
+  create_table "invite_contacts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "invite_id", null: false
+    t.uuid "contact_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_id"], name: "index_invite_contacts_on_contact_id"
+    t.index ["invite_id", "contact_id"], name: "index_invite_contacts_on_invite_id_and_contact_id", unique: true
   end
 
   create_table "invites", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -141,6 +150,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_30_010000) do
   add_foreign_key "audit_events", "organizations"
   add_foreign_key "audit_events", "users"
   add_foreign_key "contacts", "organizations"
+  add_foreign_key "invite_contacts", "contacts"
+  add_foreign_key "invite_contacts", "invites"
   add_foreign_key "invites", "contacts"
   add_foreign_key "invites", "organizations"
   add_foreign_key "invites", "users", column: "created_by_id"

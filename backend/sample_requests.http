@@ -48,6 +48,22 @@ Content-Type: application/json
   ]
 }
 
+### Bulk create invites (one per contact) and send magic-link emails
+POST http://localhost:3000/api/v1/invites/bulk_create
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "contact_ids": ["{{contact_id}}", "{{contact_id_2}}"],
+  "title": "SBA Loan Package",
+  "message": "Please upload the requested documents.",
+  "due_at": "2026-07-01T17:00:00Z",
+  "request_items": [
+    { "title": "Tax Returns", "kind": "document", "required": true, "section_name": "Financials" },
+    { "title": "Bank Statements", "kind": "document", "required": true, "section_name": "Financials" }
+  ]
+}
+
 ### Send invite
 POST http://localhost:3000/api/v1/invites/{{invite_id}}/send_invite
 Authorization: Bearer {{token}}
