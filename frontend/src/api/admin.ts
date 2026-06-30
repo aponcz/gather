@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { apiFetch, apiFetchBlob } from './client';
 import { Contact, Invite, UploadedFile, User } from '../types';
 
 export function login(email: string, password: string) {
@@ -65,4 +65,16 @@ export function rejectFile(id: number, reason: string) {
 
 export function getDownloadUrl(id: number) {
   return apiFetch<{ url: string }>(`/api/v1/uploaded_files/${id}/download_url`);
+}
+
+export async function downloadAllFilesZip(inviteId: number) {
+  const { blob, filename } = await apiFetchBlob(`/api/v1/invites/${inviteId}/download_all_files`);
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename || 'document-collection-files.zip';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
 }
