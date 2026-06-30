@@ -1,10 +1,12 @@
 class Invite < ApplicationRecord
   belongs_to :organization
-  belongs_to :contact
+  belongs_to :contact, optional: true
   belongs_to :created_by, class_name: "User"
   has_many :request_items, dependent: :destroy
   has_many :uploaded_files, through: :request_items
   has_many :audit_events, dependent: :destroy
+  has_many :invite_contacts, dependent: :destroy
+  has_many :contacts, through: :invite_contacts
 
   enum status: {
     draft: "draft",

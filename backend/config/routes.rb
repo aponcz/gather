@@ -9,7 +9,11 @@ Rails.application.routes.draw do
 
       resources :contacts, only: %i[index show create update]
       resources :invites, only: %i[index show create update] do
+        collection do
+          post :bulk_create
+        end
         member do
+          post :add_contacts
           post :send_invite
           post :cancel
           get :download_all_files

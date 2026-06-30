@@ -9,7 +9,7 @@ type DraftSection = { name: string; items: DraftItem[] };
 export function NewInvite() {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [form, setForm] = useState({ contact_id: '', title: 'SBA Loan Package', message: 'Please upload the requested documents.', due_at: '' });
+  const [form, setForm] = useState({ contact_ids: [] as string[], title: 'SBA Loan Package', message: 'Please upload the requested documents.', due_at: '' });
   const [sections, setSections] = useState<DraftSection[]>([
     {
       name: 'Requested documents',
@@ -19,6 +19,7 @@ export function NewInvite() {
       ]
     }
   ]);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { adminApi.listContacts().then(setContacts).catch((err) => setError(err.message)); }, []);
@@ -54,9 +55,10 @@ export function NewInvite() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setSubmitting(true);
     try {
-      const invite = await adminApi.createInvite({
-        contact_id: form.contact_id,
+      const result = await adminApi.bulkCreateInvites({
+        contact_ids: form.contact_ids,
         title: form.title,
         message: form.message,
         due_at: form.due_at ? new Date(form.due_at).toISOString() : undefined,
@@ -67,16 +69,27 @@ export function NewInvite() {
             section_name: section.name.trim() || undefined
           })))
       });
-      navigate(`/invites/${invite.id}`);
+
+      if (result.invite) {
+        navigate(`/invites/${result.invite.id}`);
+      }
     } catch (err) { setError(err instanceof Error ? err.message : 'Could not create invite'); }
+    finally { setSubmitting(false); }
   }
 
   return <section>
     <h1>Create invite</h1>
     <form className="card form-stack" onSubmit={submit}>
-      <label>Client
-        <select value={form.contact_id} onChange={(e) => setForm({ ...form, contact_id: e.target.value })} required>
-          <option value="">Select a contact</option>
+      <label>Clients
+        <select
+          multiple
+          value={form.contact_ids}
+          onChange={(e) => {
+            const selected = Array.from(e.target.selectedOptions).map((option) => option.value);
+            setForm({ ...form, contact_ids: selected });
+          }}
+          required
+        >
           {contacts.map(c => <option key={c.id} value={c.id}>{c.name} — {c.email}</option>)}
         </select>
       </label>
@@ -98,7 +111,7 @@ export function NewInvite() {
       </div>)}
       <button type="button" className="secondary" onClick={addSection}>Add section</button>
       {error && <div className="error">{error}</div>}
-      <button className="primary">Create invite</button>
+      <button className="primary" disabled={submitting || form.contact_ids.length === 0}>{submitting ? 'Sending invites…' : 'Create and send invites'}</button>
     </form>
   </section>;
 }
