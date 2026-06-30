@@ -25,6 +25,16 @@ export function ClientInvite() {
     finally { setUploading(null); }
   }
 
+  async function downloadFile(fileId: number) {
+    setError(null);
+    try {
+      const result = await clientApi.getUploadedFileDownloadUrl(fileId);
+      window.open(result.url, '_blank');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Download failed');
+    }
+  }
+
   if (error) return <div className="center-card"><div className="error">{error}</div><Link to="/client">Sign in to client portal</Link></div>;
   if (!invite) return <div className="center-card">Loading client invite…</div>;
 
@@ -44,7 +54,7 @@ export function ClientInvite() {
           {uploading === item.id && <span className="muted">Uploading…</span>}
         </div>
         <div className="file-list">
-          {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}><span>{file.filename}</span><StatusBadge status={file.status} /></div>)}
+          {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}><span>{file.filename}</span><StatusBadge status={file.status} /><button className="secondary" onClick={() => downloadFile(file.id)}>Download</button></div>)}
         </div>
       </div>)}
     </div>

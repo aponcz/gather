@@ -48,6 +48,22 @@ module Api
           AuditLogger.log!(organization: item.organization, invite: item.invite, contact: @current_contact, action: "file.uploaded", metadata: { uploaded_file_id: file.id })
           render json: file, status: :created
         end
+
+        def download_url
+          render json: { url: StorageService.new.presigned_download_url(key: uploaded_file.storage_key) }
+        end
+
+        private
+
+        def uploaded_file
+          @uploaded_file ||= @current_contact
+            .invites
+            .joins(request_items: :uploaded_files)
+            .merge(UploadedFile.where(id: params[:id]))
+            .first!
+            .uploaded_files
+            .find(params[:id])
+        end
       end
     end
   end
