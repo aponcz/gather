@@ -38,6 +38,10 @@ export function ClientInvite() {
   if (error) return <div className="center-card"><div className="error">{error}</div><Link to="/client">Sign in to client portal</Link></div>;
   if (!invite) return <div className="center-card">Loading client invite…</div>;
 
+  const totalRequestedDocuments = invite.request_items?.length || 0;
+  const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
+  const percentComplete = totalRequestedDocuments > 0 ? Math.round((uploadedDocuments / totalRequestedDocuments) * 100) : 0;
+
   return <section className="client-page">
     <div className="client-header" style={{ borderColor: invite.brand_color || undefined }}>
       {invite.logo_url && <img src={invite.logo_url} alt="Organization logo" />}
@@ -47,6 +51,13 @@ export function ClientInvite() {
     </div>
     <div className="card">
       <h2>Requested documents</h2>
+      <div className="progress-meta">
+        <span>{uploadedDocuments} of {totalRequestedDocuments} uploaded</span>
+        <strong>{percentComplete}%</strong>
+      </div>
+      <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
+        <div className="progress-fill" style={{ width: `${percentComplete}%` }} />
+      </div>
       {invite.request_items?.map(item => <div className="client-item" key={item.id}>
         <div><strong>{item.title}</strong><p className="muted">{item.description || 'Upload the requested file.'}</p></div>
         <div>
