@@ -41,3 +41,7 @@ export async function uploadRequestItem(requestItemId: number, file: File) {
     })
   });
 }
+
+export function getUploadedFileDownloadUrl(id: number) {
+  return apiFetch<{ url: string }>(`/api/v1/client/uploaded-files/${id}/download_url`, { auth: 'client' });
+}

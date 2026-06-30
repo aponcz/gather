@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         get "/invites/:id", to: "portal#show_invite"
         post "/request-items/:id/upload-url", to: "portal#create_upload_url"
         post "/request-items/:id/complete-upload", to: "portal#complete_upload"
+        get "/uploaded-files/:id/download_url", to: "portal#download_url"
       end
     end
   end
