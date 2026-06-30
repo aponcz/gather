@@ -12,6 +12,7 @@ Rails.application.routes.draw do
         member do
           post :send_invite
           post :cancel
+          get :download_all_files
         end
         resources :request_items, only: %i[create update destroy]
       end

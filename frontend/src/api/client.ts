@@ -36,6 +36,30 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   return body as T;
 }
 
+export async function apiFetchBlob(path: string, options: ApiOptions = {}): Promise<{ blob: Blob; filename?: string }> {
+  const headers = new Headers(options.headers);
+  if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const auth = options.auth ?? 'admin';
+  const token = auth === 'admin' ? getToken(adminTokenKey) : auth === 'client' ? getToken(clientTokenKey) : null;
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+
+  if (!response.ok) {
+    const text = await response.text();
+    const body = text ? JSON.parse(text) : null;
+    throw new ApiError(body?.error || response.statusText, response.status, body);
+  }
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get('content-disposition') || '';
+  const match = contentDisposition.match(/filename="?([^";]+)"?/i);
+  return { blob, filename: match?.[1] };
+}
+
 export async function uploadToPresignedUrl(url: string, file: File): Promise<void> {
   const response = await fetch(url, {
     method: 'PUT',

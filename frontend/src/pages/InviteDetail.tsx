@@ -15,6 +15,14 @@ export function InviteDetail() {
   async function approve(file: UploadedFile) { await adminApi.approveFile(file.id); await load(); }
   async function reject(file: UploadedFile) { const reason = window.prompt('Reason for rejection?', 'Please upload a clearer copy.'); if (reason) { await adminApi.rejectFile(file.id, reason); await load(); } }
   async function download(file: UploadedFile) { const result = await adminApi.getDownloadUrl(file.id); window.open(result.url, '_blank'); }
+  async function downloadAllFiles() {
+    if (!invite) return;
+    try {
+      await adminApi.downloadAllFilesZip(invite.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Download failed');
+    }
+  }
   async function send() { if (invite) { await adminApi.sendInvite(invite.id); await load(); } }
 
   if (error) return <div className="error">{error}</div>;
@@ -38,6 +46,9 @@ export function InviteDetail() {
     </div>
     <div className="card">
       <h2>Requested items</h2>
+      <div className="actions" style={{ marginBottom: '12px' }}>
+        <button className="secondary" onClick={downloadAllFiles}>Download all files (.zip)</button>
+      </div>
       <div className="progress-meta">
         <span>{uploadedDocuments} of {totalRequestedDocuments} uploaded</span>
         <strong>{percentComplete}%</strong>

@@ -1,6 +1,8 @@
 module Api
   module V1
     class InvitesController < ApplicationController
+      require "zip"
+
       before_action :authenticate_user!
 
       def index
@@ -54,6 +56,29 @@ module Api
         invite.cancelled!
         AuditLogger.log!(organization: current_organization, invite: invite, user: current_user, action: "invite.cancelled")
         render json: invite
+      end
+
+      def download_all_files
+        uploaded_files = invite.request_items.includes(:uploaded_files).flat_map(&:uploaded_files)
+        storage_service = StorageService.new
+        used_names = Hash.new(0)
+
+        zip_data = Zip::OutputStream.write_buffer do |zip|
+          uploaded_files.each do |uploaded_file|
+            filename = uploaded_file.filename.presence || "file-#{uploaded_file.id}"
+            ext = File.extname(filename)
+            basename = File.basename(filename, ext)
+            used_names[filename] += 1
+            entry_name = used_names[filename] > 1 ? "#{basename}-#{used_names[filename]}#{ext}" : filename
+
+            zip.put_next_entry(entry_name)
+            zip.write(storage_service.download(key: uploaded_file.storage_key))
+          end
+        end
+
+        zip_data.rewind
+        archive_name = "#{invite.title.to_s.parameterize.presence || 'document-collection'}-files.zip"
+        send_data zip_data.read, type: "application/zip", disposition: "attachment", filename: archive_name
       end
 
       private
