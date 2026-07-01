@@ -19,7 +19,8 @@ export function Login() {
     state: '',
     zip_code: '',
     website: '',
-    subdomain: ''
+    subdomain: '',
+    custom_domain: ''
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +61,7 @@ export function Login() {
           <label>Zip code<input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} /></label>
           <label>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></label>
           <label>Subdomain<input value={form.subdomain} onChange={(e) => setForm({ ...form, subdomain: e.target.value })} /></label>
+          <label>Custom domain<input placeholder="documents.mycompany.com" value={form.custom_domain} onChange={(e) => setForm({ ...form, custom_domain: e.target.value })} /></label>
         </>}
         <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
         <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>

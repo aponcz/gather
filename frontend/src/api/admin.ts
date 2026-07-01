@@ -29,6 +29,7 @@ export function register(payload: {
   zip_code?: string;
   website?: string;
   subdomain?: string;
+  custom_domain?: string;
   status?: number;
   logo?: string;
   trial_started_on?: string;
@@ -68,6 +69,7 @@ export function updateCompany(payload: {
   zip_code?: string;
   website?: string;
   subdomain?: string;
+  custom_domain?: string;
   logo?: string;
   trial_started_on?: string;
   activated_on?: string;

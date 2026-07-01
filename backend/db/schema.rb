@@ -53,6 +53,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_30_220000) do
     t.date "activated_on"
     t.date "delinquent_on"
     t.date "suspended_on"
+    t.string "custom_domain"
+    t.index ["custom_domain"], name: "index_companies_on_custom_domain", unique: true
     t.index ["subdomain"], name: "index_companies_on_subdomain", unique: true
   end
 
