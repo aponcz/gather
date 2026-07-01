@@ -7,6 +7,7 @@ export function Layout() {
   const { user, company, companies, switchCompany, signOut } = useAuth();
   const navigate = useNavigate();
   const [switchingCompany, setSwitchingCompany] = useState(false);
+  const canAccessAdminDashboard = ['admin', 'god'].includes(user?.role || '');
 
   async function handleCompanyChange(nextCompanyId: string) {
     if (!nextCompanyId || nextCompanyId === company?.id) return;
@@ -46,6 +47,7 @@ export function Layout() {
         )}
         <nav>
           <NavLink to="/" end>Dashboard</NavLink>
+          {canAccessAdminDashboard && <NavLink to="/admin">Admin Dashboard</NavLink>}
           <NavLink to="/invites/new">New Invite</NavLink>
           <NavLink to="/contacts">Contacts</NavLink>
           <NavLink to="/company">Manage Company</NavLink>

@@ -82,6 +82,21 @@ export function updateCompany(payload: {
   });
 }
 
+export function listCompanies() {
+  return apiFetch<Company[]>('/api/v1/companies');
+}
+
+export function listAllUsers() {
+  return apiFetch<User[]>('/api/v1/users');
+}
+
+export function updateUserRole(id: number | string, role: 'god' | 'admin' | 'customer') {
+  return apiFetch<User>(`/api/v1/users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role })
+  });
+}
+
 export function inviteCompanyMember(payload: { name: string; email: string; role: 'owner' | 'admin' | 'member' }) {
   return apiFetch<CompanyMember>('/api/v1/company_members', {
     method: 'POST',

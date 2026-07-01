@@ -55,7 +55,7 @@ export type User = {
   id: number;
   name: string;
   email: string;
-  role?: 'owner' | 'admin' | 'member';
+  role?: 'god' | 'admin' | 'customer';
   company_id?: number;
 };
 

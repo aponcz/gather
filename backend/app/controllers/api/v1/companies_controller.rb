@@ -2,6 +2,27 @@ module Api
   module V1
     class CompaniesController < ApplicationController
       before_action :authenticate_user!
+      before_action :authorize_admin_or_god!, only: %i[index]
+
+      def index
+        companies = Company.order(:name)
+        seen = {}
+
+        unique_companies = companies.select do |company|
+          dedupe_key = [
+            company.name.to_s.strip.downcase,
+            company.subdomain.to_s.strip.downcase,
+            company.custom_domain.to_s.strip.downcase
+          ]
+
+          next false if seen[dedupe_key]
+
+          seen[dedupe_key] = true
+          true
+        end
+
+        render json: unique_companies
+      end
 
       def show
         render json: current_company
@@ -32,6 +53,12 @@ module Api
           :delinquent_on,
           :suspended_on
         )
+      end
+
+      def authorize_admin_or_god!
+        return if %w[admin god].include?(current_user&.role)
+
+        render json: { error: "forbidden" }, status: :forbidden
       end
     end
   end

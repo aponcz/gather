@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_30_220000) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_30_233000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -127,6 +127,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_30_220000) do
     t.text "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "escalation_level", default: 1
+    t.index ["invite_id", "escalation_level"], name: "index_reminders_on_invite_id_and_escalation_level", unique: true, where: "((status)::text = ANY ((ARRAY['scheduled'::character varying, 'sent'::character varying])::text[]))"
     t.index ["invite_id"], name: "index_reminders_on_invite_id"
     t.index ["status", "send_at"], name: "index_reminders_on_status_and_send_at"
   end
@@ -171,7 +173,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_30_220000) do
     t.string "name", null: false
     t.string "email", null: false
     t.string "password_digest", null: false
-    t.string "role", default: "member", null: false
+    t.string "role", default: "customer", null: false
     t.datetime "last_login_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

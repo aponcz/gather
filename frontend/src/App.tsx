@@ -2,10 +2,14 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminOnlyRoute } from './components/AdminOnlyRoute';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Contacts } from './pages/Contacts';
 import { Company } from './pages/Company';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { ManageUsers } from './pages/ManageUsers';
+import { ManageCompanies } from './pages/ManageCompanies';
 import { SwitchCompany } from './pages/SwitchCompany';
 import { NewInvite } from './pages/NewInvite';
 import { InviteDetail } from './pages/InviteDetail';
@@ -31,6 +35,11 @@ export function App() {
             <Route path="/switch-company" element={<SwitchCompany />} />
             <Route path="/invites/new" element={<NewInvite />} />
             <Route path="/invites/:id" element={<InviteDetail />} />
+            <Route element={<AdminOnlyRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<ManageUsers />} />
+              <Route path="/admin/companies" element={<ManageCompanies />} />
+            </Route>
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

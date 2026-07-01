@@ -26,6 +26,8 @@ Rails.application.routes.draw do
       post "/auth/reset-password", to: "auth#reset_password"
       get "/me", to: "auth#me"
       resource :company, only: %i[show update]
+      resources :companies, only: %i[index]
+      resources :users, only: %i[index update]
       resources :company_members, only: %i[index create update]
 
       resources :contacts, only: %i[index show create update]

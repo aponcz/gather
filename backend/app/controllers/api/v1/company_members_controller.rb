@@ -21,7 +21,7 @@ module Api
             company: current_company,
             name: member_params.fetch(:name),
             email: email,
-            role: role_param,
+            role: "customer",
             password: generated_password
           )
         end
@@ -33,7 +33,7 @@ module Api
         membership.save! if membership.new_record? || membership.changed?
 
         if member.company_id.blank? || member.company_id == current_company.id
-          member.update!(company: current_company, role: role_param)
+          member.update!(company: current_company, role: "customer")
         end
 
         SendMemberInviteJob.perform_later(member.id, current_company.id, generated_password)
@@ -54,7 +54,7 @@ module Api
         membership = current_company.company_memberships.find_by!(user_id: params[:id])
         member = membership.user
         membership.update!(role: role_param)
-        member.update!(role: role_param) if member.company_id == current_company.id
+        member.update!(role: "customer") if member.company_id == current_company.id
 
         AuditLogger.log!(
           company: current_company,
