@@ -25,6 +25,7 @@ module Api
           :zip_code,
           :website,
           :subdomain,
+          :custom_domain,
           :logo,
           :trial_started_on,
           :activated_on,

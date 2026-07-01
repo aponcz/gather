@@ -89,6 +89,51 @@ Before production use, add:
 
 This is a backend starter application. It intentionally keeps the client magic-link endpoint developer-friendly by returning the token directly. In production, the token should only be sent by email/SMS.
 
+## Custom domain support
+
+Companies can use their own custom domains instead of subdomains to access the application. This is useful for white-labeling and branded experiences.
+
+### Configuration
+
+When a company registers or updates their profile, they can set a `custom_domain` field (e.g., `documents.mycompany.com`). The application will automatically route requests to the correct company based on:
+
+1. Custom domain (if set and matches the request hostname)
+2. Subdomain (if custom domain is not set)
+
+Example registration with custom domain:
+
+```bash
+POST /api/v1/auth/register
+{
+  "company_name": "Acme Corp",
+  "name": "Admin User",
+  "email": "admin@acme.com",
+  "password": "secure123",
+  "custom_domain": "acme-docs.mycompany.com"
+}
+```
+
+Example update to set custom domain:
+
+```bash
+PATCH /api/v1/company
+{
+  "company": {
+    "custom_domain": "acme-docs.mycompany.com"
+  }
+}
+```
+
+### Production setup
+
+To use custom domains in production:
+
+1. Ensure your DNS records point the custom domain to your application server
+2. Configure your SSL/TLS certificate to support the custom domain (wildcard or SAN)
+3. Companies can set their custom domain via the admin API
+
+The domain resolution happens at request time via the `Company.find_by_host(request.host)` method.
+
 ## Daily uncollected documents summary
 
 Run the daily summary job manually:
@@ -105,7 +150,7 @@ Control the daily schedule with the `DAILY_SUMMARY_CRON` environment variable (c
 
 ```bash
 # Run at 13:00 UTC daily (default)
-DAILY_SUMMARY_CRON="0 13 * * *" 
+DAILY_SUMMARY_CRON="0 13 * * *"
 
 # Run at 08:00 UTC daily
 DAILY_SUMMARY_CRON="0 8 * * *"

@@ -79,6 +79,7 @@ export type Company = {
   zip_code?: string | null;
   website?: string | null;
   subdomain?: string | null;
+  custom_domain?: string | null;
   logo?: string | null;
   trial_started_on?: string | null;
   activated_on?: string | null;
