@@ -6,7 +6,7 @@ POST http://localhost:3000/api/v1/auth/register
 Content-Type: application/json
 
 {
-  "organization_name": "Acme Lending",
+  "company_name": "Acme Lending",
   "name": "Admin User",
   "email": "admin@acme.test",
   "password": "password123"

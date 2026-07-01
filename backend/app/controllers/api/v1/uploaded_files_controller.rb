@@ -11,14 +11,14 @@ module Api
         uploaded_file.update!(status: :approved, reviewed_by: current_user, reviewed_at: Time.current)
         uploaded_file.request_item.approved!
         uploaded_file.request_item.invite.refresh_status!
-        AuditLogger.log!(organization: current_organization, invite: uploaded_file.request_item.invite, user: current_user, action: "file.approved", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename })
+        AuditLogger.log!(company: current_company, invite: uploaded_file.request_item.invite, user: current_user, action: "file.approved", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename })
         render json: uploaded_file
       end
 
       def reject
         uploaded_file.update!(status: :rejected, reviewed_by: current_user, reviewed_at: Time.current, rejection_reason: params[:reason])
         uploaded_file.request_item.rejected!
-        AuditLogger.log!(organization: current_organization, invite: uploaded_file.request_item.invite, user: current_user, action: "file.rejected", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename, reason: params[:reason] })
+        AuditLogger.log!(company: current_company, invite: uploaded_file.request_item.invite, user: current_user, action: "file.rejected", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename, reason: params[:reason] })
         render json: uploaded_file
       end
 
@@ -29,7 +29,7 @@ module Api
       private
 
       def uploaded_file
-        @uploaded_file ||= current_organization.uploaded_files.find(params[:id])
+        @uploaded_file ||= current_company.uploaded_files.find(params[:id])
       end
     end
   end

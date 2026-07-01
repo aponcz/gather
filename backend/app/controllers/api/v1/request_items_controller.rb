@@ -5,7 +5,7 @@ module Api
 
       def create
         item = invite.request_items.create!(item_params)
-        AuditLogger.log!(organization: current_organization, invite: invite, user: current_user, action: "request_item.created", metadata: { request_item_id: item.id })
+        AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "request_item.created", metadata: { request_item_id: item.id })
         render json: item, status: :created
       end
 
@@ -22,7 +22,7 @@ module Api
       private
 
       def invite
-        @invite ||= current_organization.invites.find(params[:invite_id])
+        @invite ||= current_company.invites.find(params[:invite_id])
       end
 
       def item

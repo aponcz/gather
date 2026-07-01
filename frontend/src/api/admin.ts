@@ -1,16 +1,42 @@
 import { apiFetch, apiFetchBlob } from './client';
-import { Contact, Invite, UploadedFile, User } from '../types';
+import { Company, CompanyMember, Contact, Invite, UploadedFile, User } from '../types';
+
+type AuthResponse = {
+  token: string;
+  user: User;
+  company: Company;
+  companies: Company[];
+};
 
 export function login(email: string, password: string) {
-  return apiFetch<{ token: string; user: User }>('/api/v1/auth/login', {
+  return apiFetch<AuthResponse>('/api/v1/auth/login', {
     method: 'POST',
     auth: false,
     body: JSON.stringify({ email, password })
   });
 }
 
-export function register(payload: { organization_name: string; name: string; email: string; password: string }) {
-  return apiFetch<{ token: string; user: User }>('/api/v1/auth/register', {
+export function register(payload: {
+  company_name: string;
+  name: string;
+  email: string;
+  password: string;
+  phone_number?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  website?: string;
+  subdomain?: string;
+  status?: number;
+  logo?: string;
+  trial_started_on?: string;
+  activated_on?: string;
+  delinquent_on?: string;
+  suspended_on?: string;
+}) {
+  return apiFetch<AuthResponse>('/api/v1/auth/register', {
     method: 'POST',
     auth: false,
     body: JSON.stringify(payload)
@@ -18,7 +44,58 @@ export function register(payload: { organization_name: string; name: string; ema
 }
 
 export function me() {
-  return apiFetch<{ user: User }>('/api/v1/me');
+  return apiFetch<{ user: User; company: Company; companies: Company[] }>('/api/v1/me');
+}
+
+export function switchCompany(companyId: string) {
+  return apiFetch<AuthResponse>('/api/v1/auth/switch-company', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId })
+  });
+}
+
+export function getCompany() {
+  return apiFetch<Company>('/api/v1/company');
+}
+
+export function updateCompany(payload: {
+  name: string;
+  phone_number?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  website?: string;
+  subdomain?: string;
+  logo?: string;
+  trial_started_on?: string;
+  activated_on?: string;
+  delinquent_on?: string;
+  suspended_on?: string;
+}) {
+  return apiFetch<Company>('/api/v1/company', {
+    method: 'PATCH',
+    body: JSON.stringify({ company: payload })
+  });
+}
+
+export function inviteCompanyMember(payload: { name: string; email: string; role: 'owner' | 'admin' | 'member' }) {
+  return apiFetch<CompanyMember>('/api/v1/company_members', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function listCompanyMembers() {
+  return apiFetch<CompanyMember[]>('/api/v1/company_members');
+}
+
+export function updateCompanyMemberRole(id: string, role: 'owner' | 'admin' | 'member') {
+  return apiFetch<CompanyMember>(`/api/v1/company_members/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role })
+  });
 }
 
 export function listContacts() {

@@ -3,7 +3,7 @@ require "rails/all"
 
 Bundler.require(*Rails.groups)
 
-module FileInviteBackendRails
+module GatherBackendRails
   class Application < Rails::Application
     config.load_defaults 7.1
     config.api_only = true

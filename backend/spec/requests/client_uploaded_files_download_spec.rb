@@ -1,12 +1,16 @@
 require 'rails_helper'
 
 RSpec.describe 'Client uploaded file download URL', type: :request do
-  let!(:organization) { Organization.create!(name: 'Acme Lending') }
+  let(:admin_email) { "admin-#{SecureRandom.hex(4)}@acme.test" }
+  let(:contact_email) { "client1-#{SecureRandom.hex(4)}@acme.test" }
+  let(:other_contact_email) { "client2-#{SecureRandom.hex(4)}@acme.test" }
+
+  let!(:company) { Company.create!(name: "Acme Lending #{SecureRandom.hex(4)}") }
   let!(:creator) do
     User.create!(
-      organization: organization,
+      company: company,
       name: 'Admin User',
-      email: 'admin@acme.test',
+      email: admin_email,
       password: 'password123',
       role: 'admin'
     )
@@ -14,23 +18,23 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
 
   let!(:contact) do
     Contact.create!(
-      organization: organization,
+      company: company,
       name: 'Client One',
-      email: 'client1@acme.test'
+      email: contact_email
     )
   end
 
   let!(:other_contact) do
     Contact.create!(
-      organization: organization,
+      company: company,
       name: 'Client Two',
-      email: 'client2@acme.test'
+      email: other_contact_email
     )
   end
 
   let!(:invite) do
     Invite.create!(
-      organization: organization,
+      company: company,
       contact: contact,
       created_by: creator,
       title: 'SBA Loan Package'
@@ -58,14 +62,14 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
 
   let(:client_token) do
     JwtService.encode(
-      { contact_id: contact.id, organization_id: organization.id, type: 'client' },
+      { contact_id: contact.id, company_id: company.id, type: 'client' },
       expires_in: 1.hour
     )
   end
 
   let(:other_client_token) do
     JwtService.encode(
-      { contact_id: other_contact.id, organization_id: organization.id, type: 'client' },
+      { contact_id: other_contact.id, company_id: company.id, type: 'client' },
       expires_in: 1.hour
     )
   end
@@ -82,21 +86,21 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
       get "/api/v1/client/uploaded-files/#{uploaded_file.id}/download_url", headers: headers
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq({ 'url' => 'https://download.example.com/file.pdf' })
+      expect(json_body).to eq({ 'url' => 'https://download.example.com/file.pdf' })
     end
 
     it 'returns unauthorized when client token is missing' do
       get "/api/v1/client/uploaded-files/#{uploaded_file.id}/download_url"
 
       expect(response).to have_http_status(:unauthorized)
-      expect(JSON.parse(response.body)).to eq({ 'error' => 'missing_token' })
+      expect(json_body).to eq({ 'error' => 'missing_token' })
     end
 
     it 'returns not found when file does not belong to current contact invites' do
       get "/api/v1/client/uploaded-files/#{uploaded_file.id}/download_url", headers: { 'Authorization' => "Bearer #{other_client_token}" }
 
       expect(response).to have_http_status(:not_found)
-      expect(JSON.parse(response.body)).to eq({ 'error' => 'not_found' })
+      expect(json_body).to eq({ 'error' => 'not_found' })
     end
   end
 end

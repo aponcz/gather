@@ -1,5 +1,5 @@
 class Invite < ApplicationRecord
-  belongs_to :organization
+  belongs_to :company, inverse_of: :invites
   belongs_to :contact, optional: true
   belongs_to :created_by, class_name: "User"
   has_many :request_items, dependent: :destroy

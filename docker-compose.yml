@@ -33,7 +33,7 @@ services:
     build: ./backend
     # command: bash -lc "bundle install && rake db:prepare && rails server -b 0.0.0.0"
     # command: bash -lc "bundle install && bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0"
-    command: bash -lc "bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"
+    command: bash -lc "bundle check || bundle install && bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"
     ports: ["3000:3000"]
     volumes:
       - ./backend:/app
@@ -54,7 +54,7 @@ services:
 
   # worker:
   #   build: ./backend
-  #   command: bash -lc "bundle install && bundle exec sidekiq"
+  #   command: bash -lc "bundle check || bundle install && bundle exec sidekiq"
   #   volumes:
   #     - ./backend:/app
   #     - bundle-cache:/usr/local/bundle

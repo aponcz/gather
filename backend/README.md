@@ -1,6 +1,6 @@
-# FileInvite-style Backend — Ruby on Rails API
+# Gather Backend — Ruby on Rails API
 
-This is a Rails API backend for a secure document collection workflow similar to FileInvite. It includes multi-tenant organizations, admin users, contacts, invites, request items, client magic-link sessions, presigned S3/MinIO upload URLs, approval/rejection workflows, audit events, email jobs, and Sidekiq background processing.
+This is a Rails API backend for Gather's secure document collection workflow. It includes multi-tenant companies, admin users, contacts, invites, request items, client magic-link sessions, presigned S3/MinIO upload URLs, approval/rejection workflows, audit events, email jobs, and Sidekiq background processing.
 
 ## Stack
 

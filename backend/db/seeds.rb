@@ -1,4 +1,4 @@
-org = Organization.find_or_create_by!(name: "Demo Company")
+org = Company.find_or_create_by!(name: "Demo Company")
 user = org.users.find_or_create_by!(email: "admin@example.com") do |u|
   u.name = "Admin User"
   u.password = "password123"

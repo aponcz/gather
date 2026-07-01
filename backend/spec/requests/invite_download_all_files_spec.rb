@@ -2,26 +2,29 @@ require 'rails_helper'
 require 'zip'
 
 RSpec.describe 'Invite download all files', type: :request do
-  let!(:organization) { Organization.create!(name: 'Acme Lending') }
+  let(:admin_email) { "admin-#{SecureRandom.hex(4)}@acme.test" }
+  let(:contact_email) { "client1-#{SecureRandom.hex(4)}@acme.test" }
+
+  let!(:company) { Company.create!(name: "Acme Lending #{SecureRandom.hex(4)}") }
   let!(:user) do
     User.create!(
-      organization: organization,
+      company: company,
       name: 'Admin User',
-      email: 'admin@acme.test',
+      email: admin_email,
       password: 'password123',
       role: 'admin'
     )
   end
   let!(:contact) do
     Contact.create!(
-      organization: organization,
+      company: company,
       name: 'Client One',
-      email: 'client1@acme.test'
+      email: contact_email
     )
   end
   let!(:invite) do
     Invite.create!(
-      organization: organization,
+      company: company,
       contact: contact,
       created_by: user,
       title: 'SBA Loan Package'
@@ -54,7 +57,7 @@ RSpec.describe 'Invite download all files', type: :request do
     )
   end
 
-  let(:token) { JwtService.encode({ sub: user.id, organization_id: organization.id }, expires_in: 1.hour) }
+  let(:token) { JwtService.encode({ sub: user.id, company_id: company.id }, expires_in: 1.hour) }
   let(:headers) { { 'Authorization' => "Bearer #{token}" } }
 
   describe 'GET /api/v1/invites/:id/download_all_files' do
@@ -143,7 +146,7 @@ RSpec.describe 'Invite download all files', type: :request do
       get "/api/v1/invites/#{invite.id}/download_all_files"
 
       expect(response).to have_http_status(:unauthorized)
-      expect(JSON.parse(response.body)).to eq({ 'error' => 'missing_token' })
+      expect(json_body).to eq({ 'error' => 'missing_token' })
     end
   end
 end

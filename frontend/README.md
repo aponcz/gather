@@ -1,6 +1,6 @@
 # ProText Gather React Frontend
 
-React/Vite frontend for the Rails API backend generated for the FileInvite-style document collection application.
+React/Vite frontend for the Rails API backend generated for the Gather document collection application.
 
 ## Features
 
@@ -42,7 +42,7 @@ VITE_API_BASE_URL=http://localhost:3000
 
 1. Start the Rails backend and dependencies.
 2. Start this React app with `npm run dev`.
-3. Register an admin organization or sign in.
+3. Register an admin company or sign in.
 4. Create a contact.
 5. Create an invite with requested documents.
 6. Send the invite.
