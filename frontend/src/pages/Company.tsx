@@ -29,6 +29,12 @@ const emptyForm: CompanyForm = {
   logo: ''
 };
 
+function roleLabel(role: 'owner' | 'admin' | 'member') {
+  if (role === 'owner') return 'God';
+  if (role === 'admin') return 'Admin';
+  return 'Customer';
+}
+
 export function Company() {
   const [activeTab, setActiveTab] = useState<'general' | 'members' | 'current_members'>('general');
   const [form, setForm] = useState<CompanyForm>(emptyForm);
@@ -219,9 +225,9 @@ export function Company() {
             <label>
               Role
               <select value={memberRole} onChange={(e) => setMemberRole(e.target.value as 'owner' | 'admin' | 'member')}>
-                <option value="owner">Owner</option>
+                <option value="owner">God</option>
                 <option value="admin">Admin</option>
-                <option value="member">Member</option>
+                <option value="member">Customer</option>
               </select>
             </label>
             {memberError && <div className="error">{memberError}</div>}
@@ -252,7 +258,7 @@ export function Company() {
                     <tr key={member.id}>
                       <td>{member.name}</td>
                       <td>{member.email}</td>
-                      <td>{member.role}</td>
+                      <td>{roleLabel(member.role)}</td>
                       <td>{member.invitation_status}</td>
                     </tr>
                   ))}
@@ -289,9 +295,9 @@ export function Company() {
                         disabled={updatingMemberId === member.id}
                         onChange={(e) => void updateMemberRole(member.id, e.target.value as 'owner' | 'admin' | 'member')}
                       >
-                        <option value="owner">Owner</option>
+                        <option value="owner">God</option>
                         <option value="admin">Admin</option>
-                        <option value="member">Member</option>
+                        <option value="member">Customer</option>
                       </select>
                     </td>
                   </tr>

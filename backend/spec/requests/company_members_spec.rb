@@ -25,7 +25,7 @@ RSpec.describe 'Company members', type: :request do
       name: 'Owner User',
       email: owner_email,
       password: 'password123',
-      role: 'owner'
+      role: 'god'
     )
   end
 
@@ -35,7 +35,7 @@ RSpec.describe 'Company members', type: :request do
       name: 'Member User',
       email: member_email,
       password: 'password123',
-      role: 'member'
+      role: 'customer'
     )
   end
 
@@ -126,6 +126,7 @@ RSpec.describe 'Company members', type: :request do
       }.to_json, headers: owner_headers
 
       expect(response).to have_http_status(:ok)
+      expect(member_user.reload.role).to eq('customer')
     end
 
     it 'returns forbidden for non-admin users' do

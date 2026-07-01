@@ -21,7 +21,7 @@ module Api
             company: current_company,
             name: member_params.fetch(:name),
             email: email,
-            role: role_param,
+            role: user_role_for_membership(role_param),
             password: generated_password
           )
         end
@@ -33,7 +33,7 @@ module Api
         membership.save! if membership.new_record? || membership.changed?
 
         if member.company_id.blank? || member.company_id == current_company.id
-          member.update!(company: current_company, role: role_param)
+          member.update!(company: current_company, role: user_role_for_membership(role_param))
         end
 
         SendMemberInviteJob.perform_later(member.id, current_company.id, generated_password)
@@ -54,7 +54,7 @@ module Api
         membership = current_company.company_memberships.find_by!(user_id: params[:id])
         member = membership.user
         membership.update!(role: role_param)
-        member.update!(role: role_param) if member.company_id == current_company.id
+        member.update!(role: user_role_for_membership(role_param)) if member.company_id == current_company.id
 
         AuditLogger.log!(
           company: current_company,
@@ -90,6 +90,17 @@ module Api
         return role if %w[owner admin member].include?(role)
 
         raise ActiveRecord::RecordInvalid.new(CompanyMembership.new.tap { |membership| membership.errors.add(:role, "is not included in the list") })
+      end
+
+      def user_role_for_membership(role)
+        case role
+        when "owner"
+          "god"
+        when "admin"
+          "admin"
+        else
+          "customer"
+        end
       end
 
       def member_payload(member, membership)
