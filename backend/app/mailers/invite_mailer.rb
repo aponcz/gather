@@ -14,6 +14,24 @@ class InviteMailer < ApplicationMailer
     end
   end
 
+  def daily_uncollected_summary_email
+    @invite = params[:invite]
+    @pending_items = params[:pending_items] || []
+
+    body = <<~TEXT
+      Daily summary: You still have documents to submit for "#{@invite.title}".
+
+      Outstanding documents:
+      #{@pending_items.map { |item| "- #{item.title}" }.join("\n")}
+
+      Complete your request here: #{client_url(@invite)}
+    TEXT
+
+    mail(to: @invite.contact.email, subject: "Daily summary: #{@invite.title}") do |format|
+      format.text { render plain: body }
+    end
+  end
+
   private
 
   def client_url(invite)

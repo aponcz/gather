@@ -1,0 +1,5 @@
+daily_uncollected_documents_summary:
+  class: DailyUncollectedDocumentsSummaryJob
+  queue: default
+  cron: "0 13 * * *"
+  description: "Send daily summary emails for uncollected documents"

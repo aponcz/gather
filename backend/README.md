@@ -88,3 +88,28 @@ Before production use, add:
 ## Notes
 
 This is a backend starter application. It intentionally keeps the client magic-link endpoint developer-friendly by returning the token directly. In production, the token should only be sent by email/SMS.
+
+## Daily uncollected documents summary
+
+Run the daily summary job manually:
+
+```bash
+bundle exec rake gather:send_daily_uncollected_documents_summary
+```
+
+Schedule this task to run once per day (for example with cron or your Sidekiq scheduler) to email contacts with outstanding request items.
+
+### Configuration
+
+Control the daily schedule with the `DAILY_SUMMARY_CRON` environment variable (cron expression format):
+
+```bash
+# Run at 13:00 UTC daily (default)
+DAILY_SUMMARY_CRON="0 13 * * *" 
+
+# Run at 08:00 UTC daily
+DAILY_SUMMARY_CRON="0 8 * * *"
+
+# Run every 6 hours
+DAILY_SUMMARY_CRON="0 */6 * * *"
+```
