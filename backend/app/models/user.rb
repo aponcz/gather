@@ -10,7 +10,7 @@ class User < ApplicationRecord
   has_many :companies, through: :company_memberships
   has_many :audit_events, dependent: :nullify
 
-  enum role: { owner: "owner", admin: "admin", member: "member" }
+  enum role: { god: "god", admin: "admin", customer: "customer" }
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
@@ -25,7 +25,7 @@ class User < ApplicationRecord
   end
 
   def role_for(company)
-    membership_for(company)&.role || (company_id == company&.id ? role : nil)
+    membership_for(company)&.role
   end
 
   def admin_for?(company)
@@ -57,7 +57,11 @@ class User < ApplicationRecord
     return if company_id.blank?
 
     membership = company_memberships.find_or_initialize_by(company_id: company_id)
-    membership.role = role.presence || membership.role || "member"
-    membership.save! if membership.new_record? || membership.changed?
+    if membership.new_record?
+      membership.role = role == "customer" ? "member" : "admin"
+    elsif membership.role.blank?
+      membership.role = role == "customer" ? "member" : "admin"
+    end
+    membership.save! if membership.new_record?
   end
 end

@@ -7,7 +7,7 @@ module Api
           user = User.new(sign_up_params.merge(company: company, role: default_role_for(company)))
 
           if user.save
-            company.company_memberships.find_or_create_by!(user: user) { |membership| membership.role = user.role }
+            company.company_memberships.find_or_create_by!(user: user) { |membership| membership.role = user.membership_role }
             render json: auth_payload(user, company), status: :created
           else
             render json: { error: "validation_failed", details: user.errors.full_messages }, status: :unprocessable_entity

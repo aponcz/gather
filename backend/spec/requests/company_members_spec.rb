@@ -25,7 +25,7 @@ RSpec.describe 'Company members', type: :request do
       name: 'Owner User',
       email: owner_email,
       password: 'password123',
-      role: 'owner'
+      role: 'god'
     )
   end
 
@@ -35,7 +35,7 @@ RSpec.describe 'Company members', type: :request do
       name: 'Member User',
       email: member_email,
       password: 'password123',
-      role: 'member'
+      role: 'customer'
     )
   end
 
@@ -61,7 +61,7 @@ RSpec.describe 'Company members', type: :request do
       expect(body['invitation_status']).to eq('pending')
 
       created_user = company.users.find_by!(email: new_member_email)
-      expect(created_user.role).to eq('admin')
+      expect(created_user.role).to eq('customer')
       expect(SendMemberInviteJob).to have_received(:perform_later).with(created_user.id, company.id, kind_of(String)).once
     end
 
@@ -114,7 +114,7 @@ RSpec.describe 'Company members', type: :request do
       expect(response).to have_http_status(:ok)
       body = json_body
       expect(body['role']).to eq('admin')
-      expect(member_user.reload.role).to eq('admin')
+      expect(member_user.reload.role).to eq('customer')
     end
 
     it 'allows owner to update a member role' do
@@ -126,6 +126,7 @@ RSpec.describe 'Company members', type: :request do
       }.to_json, headers: owner_headers
 
       expect(response).to have_http_status(:ok)
+      expect(member_user.reload.role).to eq('customer')
     end
 
     it 'returns forbidden for non-admin users' do
