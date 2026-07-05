@@ -68,6 +68,158 @@ RSpec.describe 'Auth', type: :request do
     end
   end
 
+  describe 'GET /api/v1/auth/oauth/goprotext/start' do
+    around do |example|
+      original_client_id = ENV['GOPROTEXT_OAUTH_CLIENT_ID']
+      original_redirect_uri = ENV['GOPROTEXT_OAUTH_REDIRECT_URI']
+      original_authorize_url = ENV['GOPROTEXT_OAUTH_AUTHORIZE_URL']
+      original_scope = ENV['GOPROTEXT_OAUTH_SCOPE']
+      original_audience = ENV['GOPROTEXT_OAUTH_AUDIENCE']
+
+      ENV['GOPROTEXT_OAUTH_CLIENT_ID'] = 'goprotext-client-id'
+      ENV['GOPROTEXT_OAUTH_REDIRECT_URI'] = 'http://localhost:3000/api/v1/auth/oauth/goprotext/callback'
+      ENV['GOPROTEXT_OAUTH_AUTHORIZE_URL'] = 'https://id.goprotext.com/oauth/authorize'
+      ENV['GOPROTEXT_OAUTH_SCOPE'] = 'openid profile email'
+      ENV.delete('GOPROTEXT_OAUTH_AUDIENCE')
+
+      example.run
+    ensure
+      ENV['GOPROTEXT_OAUTH_CLIENT_ID'] = original_client_id
+      ENV['GOPROTEXT_OAUTH_REDIRECT_URI'] = original_redirect_uri
+      ENV['GOPROTEXT_OAUTH_AUTHORIZE_URL'] = original_authorize_url
+      ENV['GOPROTEXT_OAUTH_SCOPE'] = original_scope
+      if original_audience.present?
+        ENV['GOPROTEXT_OAUTH_AUDIENCE'] = original_audience
+      else
+        ENV.delete('GOPROTEXT_OAUTH_AUDIENCE')
+      end
+    end
+
+    it 'returns an authorization url with required oauth parameters' do
+      get '/api/v1/auth/oauth/goprotext/start', headers: json_headers
+
+      expect(response).to have_http_status(:ok)
+      body = json_body
+      expect(body['authorization_url']).to be_present
+
+      uri = URI.parse(body['authorization_url'])
+      expect(uri.host).to eq('id.goprotext.com')
+
+      params = URI.decode_www_form(uri.query.to_s).to_h
+      expect(params['response_type']).to eq('code')
+      expect(params['client_id']).to eq('goprotext-client-id')
+      expect(params['redirect_uri']).to eq('http://localhost:3000/api/v1/auth/oauth/goprotext/callback')
+      expect(params['scope']).to eq('openid profile email')
+      expect(params['state']).to be_present
+    end
+
+    it 'includes audience when configured' do
+      ENV['GOPROTEXT_OAUTH_AUDIENCE'] = 'https://api.goprotext.com'
+
+      get '/api/v1/auth/oauth/goprotext/start', headers: json_headers
+
+      expect(response).to have_http_status(:ok)
+      uri = URI.parse(json_body.fetch('authorization_url'))
+      params = URI.decode_www_form(uri.query.to_s).to_h
+      expect(params['audience']).to eq('https://api.goprotext.com')
+    end
+  end
+
+  describe 'GET /api/v1/auth/oauth/goprotext/callback' do
+    around do |example|
+      original_client_id = ENV['GOPROTEXT_OAUTH_CLIENT_ID']
+      original_client_secret = ENV['GOPROTEXT_OAUTH_CLIENT_SECRET']
+      original_frontend_callback = ENV['FRONTEND_OAUTH_CALLBACK_URL']
+
+      ENV['GOPROTEXT_OAUTH_CLIENT_ID'] = 'goprotext-client-id'
+      ENV['GOPROTEXT_OAUTH_CLIENT_SECRET'] = 'goprotext-client-secret'
+      ENV['FRONTEND_OAUTH_CALLBACK_URL'] = 'http://localhost:5173/login/oauth-callback'
+
+      example.run
+    ensure
+      ENV['GOPROTEXT_OAUTH_CLIENT_ID'] = original_client_id
+      ENV['GOPROTEXT_OAUTH_CLIENT_SECRET'] = original_client_secret
+      ENV['FRONTEND_OAUTH_CALLBACK_URL'] = original_frontend_callback
+    end
+
+    def build_http_success(payload)
+      response = Net::HTTPOK.new('1.1', '200', 'OK')
+      response.instance_variable_set(:@read, true)
+      response.instance_variable_set(:@body, payload.to_json)
+      response
+    end
+
+    it 'returns unauthorized when oauth state is invalid' do
+      get '/api/v1/auth/oauth/goprotext/callback', params: { state: 'invalid-state', code: 'auth-code' }, headers: json_headers
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(json_body).to eq({ 'error' => 'invalid_state' })
+    end
+
+    it 'creates user from oauth profile and redirects with app token' do
+      state = SecureRandom.urlsafe_base64(16)
+      Rails.cache.write("oauth:goprotext:state:#{state}", true, expires_in: 10.minutes)
+
+      allow_any_instance_of(Api::V1::AuthController)
+        .to receive(:perform_http_request)
+        .and_return(
+          build_http_success('access_token' => 'oauth-access-token'),
+          build_http_success('email' => 'oauth-user@example.test', 'name' => 'OAuth User')
+        )
+
+      get '/api/v1/auth/oauth/goprotext/callback', params: { state: state, code: 'auth-code' }, headers: json_headers
+
+      expect(response).to have_http_status(:found)
+      location = response.headers['Location']
+      expect(location).to be_present
+      expect(location).to include('http://localhost:5173/login/oauth-callback?token=')
+
+      redirected_uri = URI.parse(location)
+      token = URI.decode_www_form(redirected_uri.query.to_s).to_h['token']
+      decoded = JwtService.decode(token)
+      user = User.find(decoded.fetch('sub'))
+
+      expect(user.email).to eq('oauth-user@example.test')
+      expect(user.name).to eq('OAuth User')
+      expect(user.role).to eq('customer')
+      expect(user.membership_for(user.company)).to be_present
+      expect(user.membership_for(user.company).role).to eq('member')
+    end
+
+    it 'ensures membership for existing oauth user before issuing token' do
+      existing_company = Company.create!(name: "Legacy OAuth Company #{SecureRandom.hex(4)}")
+      existing_user = User.create!(
+        company: existing_company,
+        name: 'Legacy OAuth User',
+        email: 'legacy-oauth-user@example.test',
+        password: 'password123',
+        role: 'customer'
+      )
+      existing_user.company_memberships.where(company_id: existing_company.id).delete_all
+
+      state = SecureRandom.urlsafe_base64(16)
+      Rails.cache.write("oauth:goprotext:state:#{state}", true, expires_in: 10.minutes)
+
+      allow_any_instance_of(Api::V1::AuthController)
+        .to receive(:perform_http_request)
+        .and_return(
+          build_http_success('access_token' => 'oauth-access-token'),
+          build_http_success('email' => existing_user.email, 'name' => 'Legacy OAuth User')
+        )
+
+      get '/api/v1/auth/oauth/goprotext/callback', params: { state: state, code: 'auth-code' }, headers: json_headers
+
+      expect(response).to have_http_status(:found)
+      token = URI.decode_www_form(URI.parse(response.headers['Location']).query.to_s).to_h.fetch('token')
+
+      expect(existing_user.reload.membership_for(existing_company)).to be_present
+
+      get '/api/v1/me', headers: { 'Authorization' => "Bearer #{token}" }
+      expect(response).to have_http_status(:ok)
+      expect(json_body.dig('user', 'email')).to eq(existing_user.email)
+    end
+  end
+
   describe 'GET /api/v1/me' do
     let(:me_email) { "me-admin-#{SecureRandom.hex(4)}@acme.test" }
     let!(:company) { Company.create!(name: "Acme Lending #{SecureRandom.hex(4)}") }

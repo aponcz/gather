@@ -26,6 +26,16 @@ export function Login() {
 
   if (user) return <Navigate to="/" replace />;
 
+  async function signInWithProText() {
+    setError(null);
+    try {
+      const result = await import('../api/admin').then((api) => api.getProTextAuthorizationUrl());
+      window.location.assign(result.authorization_url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OAuth sign-in failed');
+    }
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -50,19 +60,21 @@ export function Login() {
       <form className="card auth-card" onSubmit={submit}>
         <h1>{mode === 'login' ? 'Sign in' : 'Create your workspace'}</h1>
         <p className="muted">Manage document collection invites, reviews, and secure client uploads.</p>
-        {mode === 'register' && <>
-          <label>Company<input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></label>
-          <label>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-          <label>Phone number<input value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} /></label>
-          <label>Address line 1<input value={form.address_line_1} onChange={(e) => setForm({ ...form, address_line_1: e.target.value })} /></label>
-          <label>Address line 2<input value={form.address_line_2} onChange={(e) => setForm({ ...form, address_line_2: e.target.value })} /></label>
-          <label>City<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></label>
-          <label>State<input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></label>
-          <label>Zip code<input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} /></label>
-          <label>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></label>
-          <label>Subdomain<input value={form.subdomain} onChange={(e) => setForm({ ...form, subdomain: e.target.value })} /></label>
-          <label>Custom domain<input placeholder="documents.mycompany.com" value={form.custom_domain} onChange={(e) => setForm({ ...form, custom_domain: e.target.value })} /></label>
-        </>}
+        {mode === 'register' && (
+          <>
+            <label>Company<input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></label>
+            <label>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+            <label>Phone number<input value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} /></label>
+            <label>Address line 1<input value={form.address_line_1} onChange={(e) => setForm({ ...form, address_line_1: e.target.value })} /></label>
+            <label>Address line 2<input value={form.address_line_2} onChange={(e) => setForm({ ...form, address_line_2: e.target.value })} /></label>
+            <label>City<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></label>
+            <label>State<input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></label>
+            <label>Zip code<input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} /></label>
+            <label>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></label>
+            <label>Subdomain<input value={form.subdomain} onChange={(e) => setForm({ ...form, subdomain: e.target.value })} /></label>
+            <label>Custom domain<input placeholder="documents.mycompany.com" value={form.custom_domain} onChange={(e) => setForm({ ...form, custom_domain: e.target.value })} /></label>
+          </>
+        )}
         <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
         <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
         {mode === 'login' && (
@@ -74,6 +86,11 @@ export function Login() {
         )}
         {error && <div className="error">{error}</div>}
         <button className="primary" type="submit">{mode === 'login' ? 'Sign in' : 'Register'}</button>
+        {mode === 'login' && (
+          <button className="primary" type="button" onClick={() => void signInWithProText()}>
+            Sign in with ProText
+          </button>
+        )}
         <button type="button" className="link-button" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
           {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'}
         </button>

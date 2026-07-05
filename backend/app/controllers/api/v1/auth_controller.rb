@@ -1,8 +1,14 @@
 module Api
   module V1
     class AuthController < ApplicationController
+      require "net/http"
+      require "uri"
+      require "json"
+
       RESET_PASSWORD_TTL = 2.hours
       RESET_PASSWORD_CACHE_PREFIX = "password-reset"
+      OAUTH_STATE_TTL = 10.minutes
+      OAUTH_STATE_CACHE_PREFIX = "oauth:goprotext:state"
 
       before_action :authenticate_user!, only: %i[me switch_company]
 
@@ -28,6 +34,64 @@ module Api
         user.update_column(:last_login_at, Time.current)
 
         render_auth_payload(user, company)
+      end
+
+      def oauth_goprotext_start
+        state = SecureRandom.urlsafe_base64(32)
+        cache_oauth_state(state)
+
+        authorize_uri = URI(goprotext_authorize_url)
+        authorize_query = {
+          response_type: "code",
+          client_id: goprotext_client_id,
+          redirect_uri: goprotext_redirect_uri,
+          scope: goprotext_scope,
+          state: state
+        }
+        authorize_query[:audience] = goprotext_audience if goprotext_audience.present?
+        authorize_uri.query = URI.encode_www_form(authorize_query)
+
+        render json: { authorization_url: authorize_uri.to_s }
+      end
+
+      def oauth_goprotext_callback
+        state = params.require(:state)
+        code = params.require(:code)
+        return render(json: { error: "invalid_state" }, status: :unauthorized) unless valid_oauth_state?(state)
+
+        token_payload = exchange_oauth_code_for_token(code)
+        userinfo = fetch_oauth_userinfo(token_payload.fetch("access_token"))
+
+        profile = userinfo["user"].is_a?(Hash) ? userinfo.fetch("user") : userinfo
+        email = profile.fetch("email").to_s.downcase
+        name = profile["name"].presence || email.split("@").first
+
+        user = User.find_or_initialize_by(email: email)
+        if user.new_record?
+          company = Company.first || Company.create!(name: "GoProText")
+          user.assign_attributes(
+            company: company,
+            name: name,
+            password: SecureRandom.base58(24),
+            role: "customer"
+          )
+          user.save!
+          company.company_memberships.find_or_create_by!(user: user) { |membership| membership.role = "member" }
+        else
+          user.update!(name: name) if name.present? && user.name != name
+        end
+
+        company = resolve_login_company!(user)
+        user.update_column(:last_login_at, Time.current)
+        app_token = token_for(user, company)
+
+        redirect_to oauth_frontend_callback_uri(token: app_token), allow_other_host: true
+      rescue KeyError => e
+        Rails.logger.error("OAuth callback failed: #{e.message}, backtrace: #{e.backtrace.first(5).inspect}")
+        render json: { error: "oauth_invalid_response", details: e.message }, status: :unprocessable_entity
+      rescue StandardError => e
+        Rails.logger.error("OAuth callback error: #{e.class}: #{e.message}")
+        render json: { error: "oauth_error", details: e.message, error_class: e.class.name }, status: :unprocessable_entity
       end
 
       def me
@@ -75,6 +139,103 @@ module Api
 
       private
 
+      def goprotext_authorize_url
+        ENV.fetch("GOPROTEXT_OAUTH_AUTHORIZE_URL", "https://id.goprotext.com/oauth/authorize")
+      end
+
+      def goprotext_token_url
+        ENV.fetch("GOPROTEXT_OAUTH_TOKEN_URL", "https://id.goprotext.com/oauth/token")
+      end
+
+      def goprotext_userinfo_url
+        ENV.fetch("GOPROTEXT_OAUTH_USERINFO_URL", "https://id.goprotext.com/oauth/userinfo")
+      end
+
+      def goprotext_client_id
+        ENV.fetch("GOPROTEXT_OAUTH_CLIENT_ID")
+      end
+
+      def goprotext_client_secret
+        ENV.fetch("GOPROTEXT_OAUTH_CLIENT_SECRET")
+      end
+
+      def goprotext_redirect_uri
+        ENV.fetch("GOPROTEXT_OAUTH_REDIRECT_URI", "http://localhost:3000/api/v1/auth/oauth/goprotext/callback")
+      end
+
+      def goprotext_scope
+        ENV.fetch("GOPROTEXT_OAUTH_SCOPE", "openid profile email")
+      end
+
+      def goprotext_audience
+        ENV["GOPROTEXT_OAUTH_AUDIENCE"]
+      end
+
+      def frontend_oauth_callback_url
+        ENV.fetch("FRONTEND_OAUTH_CALLBACK_URL", "http://localhost:5173/login/oauth-callback")
+      end
+
+      def cache_oauth_state(state)
+        Rails.cache.write(oauth_state_cache_key(state), true, expires_in: OAUTH_STATE_TTL)
+      end
+
+      def valid_oauth_state?(state)
+        present = Rails.cache.read(oauth_state_cache_key(state))
+        Rails.cache.delete(oauth_state_cache_key(state))
+        present.present?
+      end
+
+      def oauth_state_cache_key(state)
+        "#{OAUTH_STATE_CACHE_PREFIX}:#{state}"
+      end
+
+      def exchange_oauth_code_for_token(code)
+        uri = URI(goprotext_token_url)
+        request = Net::HTTP::Post.new(uri)
+        request.set_form_data(
+          grant_type: "authorization_code",
+          code: code,
+          redirect_uri: goprotext_redirect_uri,
+          client_id: goprotext_client_id,
+          client_secret: goprotext_client_secret
+        )
+
+        response = perform_http_request(uri, request)
+        unless response.is_a?(Net::HTTPSuccess)
+          Rails.logger.error("OAuth token exchange failed: #{response.code} #{response.message}\nBody: #{response.body}")
+          raise KeyError, "Token exchange failed with status #{response.code}"
+        end
+
+        JSON.parse(response.body)
+      end
+
+      def fetch_oauth_userinfo(access_token)
+        uri = URI(goprotext_userinfo_url)
+        request = Net::HTTP::Get.new(uri)
+        request["Authorization"] = "Bearer #{access_token}"
+
+        response = perform_http_request(uri, request)
+        unless response.is_a?(Net::HTTPSuccess)
+          Rails.logger.error("OAuth userinfo fetch failed: #{response.code} #{response.message}\nBody: #{response.body}")
+          raise KeyError, "Userinfo fetch failed with status #{response.code}"
+        end
+
+        JSON.parse(response.body)
+      end
+
+      def perform_http_request(uri, request)
+        Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
+          http.request(request)
+        end
+      end
+
+      def oauth_frontend_callback_uri(token:)
+        uri = URI(frontend_oauth_callback_url)
+        existing_params = uri.query.present? ? URI.decode_www_form(uri.query).to_h : {}
+        uri.query = URI.encode_www_form(existing_params.merge("token" => token))
+        uri.to_s
+      end
+
       def token_for(user, company)
         JwtService.encode({ sub: user.id, company_id: company.id, type: "user" })
       end
@@ -102,9 +263,23 @@ module Api
 
       def resolve_login_company!(user)
         requested_company_id = params[:company_id].presence
-        return user.companies.find(requested_company_id) if requested_company_id.present?
+        company = if requested_company_id.present?
+          user.companies.find(requested_company_id)
+        else
+          user.companies.first || user.company || raise(ActiveRecord::RecordNotFound)
+        end
 
-        user.companies.first || user.company || raise(ActiveRecord::RecordNotFound)
+        ensure_user_membership_for_company!(user, company)
+        company
+      end
+
+      def ensure_user_membership_for_company!(user, company)
+        return if user.membership_for(company).present?
+
+        role = user.role == "customer" ? "member" : "admin"
+        company.company_memberships.find_or_create_by!(user: user) do |membership|
+          membership.role = role
+        end
       end
 
       def authenticate_by_email(email, password)

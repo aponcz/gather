@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { clearToken, setToken, adminTokenKey } from '../lib/storage';
+import { clearToken, getToken, setToken, adminTokenKey } from '../lib/storage';
 import * as adminApi from '../api/admin';
 import { Company, User } from '../types';
 
@@ -8,6 +8,7 @@ type AuthContextValue = {
   company: Company | null;
   companies: Company[];
   loading: boolean;
+  completeOAuthSignIn: (token: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (payload: {
     company_name: string;
@@ -48,6 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    const token = getToken(adminTokenKey);
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     adminApi.me()
       .then((result) => applyAuthState(result))
       .catch(() => {
@@ -64,6 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     company,
     companies,
     loading,
+    async completeOAuthSignIn(token) {
+      setToken(adminTokenKey, token);
+      const result = await adminApi.me();
+      applyAuthState(result);
+    },
     async signIn(email, password) {
       const result = await adminApi.login(email, password);
       setToken(adminTokenKey, result.token);

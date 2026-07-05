@@ -9,6 +9,7 @@
       "matchCommandLine": true
     },
     "npm install": true,
-    "mkdir": true
+    "mkdir": true,
+    "npm i": true
   }
 }

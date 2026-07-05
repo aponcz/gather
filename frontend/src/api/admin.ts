@@ -16,6 +16,13 @@ export function login(email: string, password: string) {
   });
 }
 
+export function getProTextAuthorizationUrl() {
+  return apiFetch<{ authorization_url: string }>('/api/v1/auth/oauth/goprotext/start', {
+    method: 'GET',
+    auth: false
+  });
+}
+
 export function register(payload: {
   company_name: string;
   name: string;
