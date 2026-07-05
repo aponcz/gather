@@ -15,6 +15,7 @@ import { NewInvite } from './pages/NewInvite';
 import { InviteDetail } from './pages/InviteDetail';
 import { ClientPortal } from './pages/ClientPortal';
 import { ClientInvite } from './pages/ClientInvite';
+import { OAuthCallback } from './pages/OAuthCallback';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
@@ -23,6 +24,7 @@ export function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/login/oauth-callback" element={<OAuthCallback />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/client" element={<ClientPortal />} />

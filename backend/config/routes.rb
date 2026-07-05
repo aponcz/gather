@@ -21,6 +21,8 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "/auth/register", to: "auth#register"
       post "/auth/login", to: "auth#login"
+      get "/auth/oauth/goprotext/start", to: "auth#oauth_goprotext_start"
+      get "/auth/oauth/goprotext/callback", to: "auth#oauth_goprotext_callback"
       post "/auth/switch-company", to: "auth#switch_company"
       post "/auth/forgot-password", to: "auth#forgot_password"
       post "/auth/reset-password", to: "auth#reset_password"
