@@ -5,6 +5,14 @@ export type Contact = {
   phone?: string | null;
 };
 
+export type InviteRecipient = {
+  id: string | number;
+  contact_id?: string | number | null;
+  name: string;
+  email: string;
+  phone?: string | null;
+};
+
 export type UploadedFile = {
   id: number;
   filename: string;
@@ -38,7 +46,7 @@ export type Invite = {
   brand_color?: string | null;
   logo_url?: string | null;
   contact?: Contact;
-  contacts?: Contact[];
+  contacts?: InviteRecipient[];
   request_items?: RequestItem[];
   audit_events?: AuditEvent[];
 };

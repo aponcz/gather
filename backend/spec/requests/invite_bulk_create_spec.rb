@@ -63,11 +63,32 @@ RSpec.describe 'Invite bulk create', type: :request do
       expect(invite.request_items.count).to eq(2)
       expect(invite.request_items.pluck(:section_name).uniq).to eq(['Financials'])
 
-      # Both contacts should be in invite_contacts
-      expect(invite.invite_contacts.pluck(:contact_id)).to match_array([contact_one.id, contact_two.id])
+      # Both recipients should be in invite_contacts
+      expect(invite.invite_contacts.pluck(:email)).to match_array([contact_one.email, contact_two.email])
 
       # Invite should be sent to both contacts (SendInviteJob called twice)
       expect(SendInviteJob).to have_received(:perform_later).twice
+    end
+
+    it 'creates invite recipients directly without global contacts' do
+      allow(SendInviteJob).to receive(:perform_later)
+
+      post '/api/v1/invites/bulk_create', params: {
+        recipients: [
+          { name: 'Borrower One', email: "borrower1-#{SecureRandom.hex(4)}@acme.test", phone: '555-0101' },
+          { name: 'Borrower Two', email: "borrower2-#{SecureRandom.hex(4)}@acme.test" }
+        ],
+        title: 'SBA Loan Package',
+        request_items: [
+          { title: 'Tax Returns', kind: 'document', required: true }
+        ]
+      }.to_json, headers: headers
+
+      expect(response).to have_http_status(:created)
+      body = json_body
+      expect(body['contact_count']).to eq(2)
+      expect(body.dig('invite', 'contacts').length).to eq(2)
+      expect(body.dig('invite', 'contacts').all? { |recipient| recipient['contact_id'].nil? }).to eq(true)
     end
 
     it 'returns validation error when any contact is missing' do

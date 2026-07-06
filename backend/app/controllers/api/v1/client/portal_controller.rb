@@ -60,7 +60,11 @@ module Api
         def find_accessible_invite(public_token)
           # Support both old single-contact invites and new shared invites
           Invite.where(public_token: public_token)
-            .where('contact_id = ? OR id IN (SELECT invite_id FROM invite_contacts WHERE contact_id = ?)', @current_contact.id, @current_contact.id)
+            .where(
+              'contact_id = :contact_id OR id IN (SELECT invite_id FROM invite_contacts WHERE contact_id = :contact_id OR LOWER(email) = :email)',
+              contact_id: @current_contact.id,
+              email: @current_contact.email.to_s.downcase
+            )
             .first! || raise(ActiveRecord::RecordNotFound)
         end
 
@@ -68,14 +72,22 @@ module Api
           # Support both old single-contact and new shared invites for request items
           RequestItem.where(id: request_item_id)
             .joins(:invite)
-            .where('invites.contact_id = ? OR invites.id IN (SELECT invite_id FROM invite_contacts WHERE contact_id = ?)', @current_contact.id, @current_contact.id)
+            .where(
+              'invites.contact_id = :contact_id OR invites.id IN (SELECT invite_id FROM invite_contacts WHERE contact_id = :contact_id OR LOWER(email) = :email)',
+              contact_id: @current_contact.id,
+              email: @current_contact.email.to_s.downcase
+            )
             .first!&.invite || raise(ActiveRecord::RecordNotFound)
         end
 
         def uploaded_file
           @uploaded_file ||= UploadedFile.joins(request_item: :invite)
             .where(id: params[:id])
-            .where('invites.contact_id = ? OR invites.id IN (SELECT invite_id FROM invite_contacts WHERE contact_id = ?)', @current_contact.id, @current_contact.id)
+            .where(
+              'invites.contact_id = :contact_id OR invites.id IN (SELECT invite_id FROM invite_contacts WHERE contact_id = :contact_id OR LOWER(email) = :email)',
+              contact_id: @current_contact.id,
+              email: @current_contact.email.to_s.downcase
+            )
             .first! || raise(ActiveRecord::RecordNotFound)
         end
       end

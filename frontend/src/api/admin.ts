@@ -1,6 +1,8 @@
 import { apiFetch, apiFetchBlob } from './client';
 import { Company, CompanyMember, Contact, Invite, UploadedFile, User } from '../types';
 
+type InviteRecipientInput = { name: string; email: string; phone?: string };
+
 type AuthResponse = {
   token: string;
   user: User;
@@ -139,7 +141,9 @@ export function getInvite(id: string | number) {
 }
 
 export function createInvite(payload: {
-  contact_id: string;
+  contact_id?: string;
+  contact_ids?: string[];
+  recipients?: InviteRecipientInput[];
   title: string;
   message?: string;
   due_at?: string;
@@ -149,7 +153,8 @@ export function createInvite(payload: {
 }
 
 export function bulkCreateInvites(payload: {
-  contact_ids: string[];
+  contact_ids?: string[];
+  recipients?: InviteRecipientInput[];
   title: string;
   message?: string;
   due_at?: string;
@@ -162,10 +167,10 @@ export function sendInvite(id: string | number) {
   return apiFetch<{ status: string; invite: Invite }>(`/api/v1/invites/${id}/send_invite`, { method: 'POST' });
 }
 
-export function addInviteContacts(id: string | number, contact_ids: string[]) {
+export function addInviteContacts(id: string | number, payload: { contact_ids?: string[]; recipients?: InviteRecipientInput[] }) {
   return apiFetch<{ invite: Invite; added_contact_count: number }>(`/api/v1/invites/${id}/add_contacts`, {
     method: 'POST',
-    body: JSON.stringify({ contact_ids })
+    body: JSON.stringify(payload)
   });
 }
 

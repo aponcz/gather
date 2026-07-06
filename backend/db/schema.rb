@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_30_233000) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_06_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -83,16 +83,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_30_233000) do
 
   create_table "invite_contacts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "invite_id", null: false
-    t.uuid "contact_id", null: false
+    t.uuid "contact_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "name"
+    t.string "email"
+    t.string "phone"
     t.index ["contact_id"], name: "index_invite_contacts_on_contact_id"
     t.index ["invite_id", "contact_id"], name: "index_invite_contacts_on_invite_id_and_contact_id", unique: true
   end
 
   create_table "invites", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "company_id", null: false
-    t.uuid "contact_id", null: false
+    t.uuid "contact_id"
     t.uuid "created_by_id", null: false
     t.string "title", null: false
     t.text "message"
