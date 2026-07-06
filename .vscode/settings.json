@@ -11,6 +11,7 @@
     "npm install": true,
     "mkdir": true,
     "npm i": true,
-    "npx -y tsc": true
+    "npx -y tsc": true,
+    "docker run": true
   }
 }

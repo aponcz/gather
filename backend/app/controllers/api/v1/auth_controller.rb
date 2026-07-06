@@ -48,6 +48,7 @@ module Api
           scope: goprotext_scope,
           state: state
         }
+
         authorize_query[:audience] = goprotext_audience if goprotext_audience.present?
         authorize_uri.query = URI.encode_www_form(authorize_query)
 
@@ -61,28 +62,39 @@ module Api
 
         token_payload = exchange_oauth_code_for_token(code)
         userinfo = fetch_oauth_userinfo(token_payload.fetch("access_token"))
+        oauth_companies = userinfo.fetch("companies")
 
         profile = userinfo["user"].is_a?(Hash) ? userinfo.fetch("user") : userinfo
         email = profile.fetch("email").to_s.downcase
         name = profile["name"].presence || email.split("@").first
+        refresh_token = token_payload["refresh_token"].to_s.presence
 
         user = User.find_or_initialize_by(email: email)
         if user.new_record?
           company = Company.first || Company.create!(name: "GoProText")
-          user.assign_attributes(
+          assign_attributes = {
             company: company,
             name: name,
             password: SecureRandom.base58(24),
             role: "customer"
-          )
+          }
+          assign_attributes[:goprotext_refresh_token] = refresh_token if refresh_token.present?
+
+          user.assign_attributes(assign_attributes)
           user.save!
           company.company_memberships.find_or_create_by!(user: user) { |membership| membership.role = "member" }
         else
-          user.update!(name: name) if name.present? && user.name != name
+          update_attributes = {}
+          update_attributes[:name] = name if name.present? && user.name != name
+          update_attributes[:goprotext_refresh_token] = refresh_token if refresh_token.present?
+          user.update!(update_attributes) if update_attributes.any?
         end
+
+        sync_oauth_companies!(user, oauth_companies)
 
         company = resolve_login_company!(user)
         user.update_column(:last_login_at, Time.current)
+        ImportProtextLoansJob.perform_now(company.id, user.id, token_payload.fetch("access_token"))
         app_token = token_for(user, company)
 
         redirect_to oauth_frontend_callback_uri(token: app_token), allow_other_host: true
@@ -223,6 +235,31 @@ module Api
         JSON.parse(response.body)
       end
 
+      def sync_oauth_companies!(user, oauth_companies)
+        Array(oauth_companies).each do |oauth_company|
+          next unless oauth_company.is_a?(Hash)
+
+          protext_id = normalize_protext_uuid(oauth_company["id"] || oauth_company[:id])
+          next if protext_id.blank?
+
+          company_name = (oauth_company["name"] || oauth_company[:name]).to_s.strip
+          company = Company.find_or_initialize_by(protext_id: protext_id)
+          company.name = company_name.presence || "GoProText #{protext_id}" if company.name.blank?
+          company.save! if company.new_record? || company.changed?
+
+          user.company_memberships.find_or_create_by!(company: company) do |membership|
+            membership.role = user.role == "customer" ? "member" : "admin"
+          end
+        end
+      end
+
+      def normalize_protext_uuid(value)
+        uuid = value.to_s.strip.downcase
+        return nil unless uuid.match?(/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/)
+
+        uuid
+      end
+
       def perform_http_request(uri, request)
         Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
           http.request(request)
@@ -266,7 +303,7 @@ module Api
         company = if requested_company_id.present?
           user.companies.find(requested_company_id)
         else
-          user.companies.first || user.company || raise(ActiveRecord::RecordNotFound)
+          user.companies.last || user.company || raise(ActiveRecord::RecordNotFound)
         end
 
         ensure_user_membership_for_company!(user, company)

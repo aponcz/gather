@@ -20,7 +20,7 @@ export function OAuthCallback() {
         // Delay to allow localStorage to flush and JS execution to complete
         setTimeout(() => {
           window.location.replace('/');
-        }, 100);
+        }, 200);
       })
       .catch(() => {
         window.location.replace('/login');

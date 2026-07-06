@@ -1,7 +1,6 @@
 class Company < ApplicationRecord
 	has_many :company_memberships, dependent: :destroy
 	has_many :users, through: :company_memberships
-	has_many :primary_users, class_name: "User", dependent: :nullify, inverse_of: :company
 	has_many :contacts, dependent: :destroy, inverse_of: :company
 	has_many :invites, dependent: :destroy, inverse_of: :company
 	has_many :request_items, through: :invites
@@ -15,6 +14,7 @@ class Company < ApplicationRecord
 	}
 
 	validates :name, presence: true
+	validates :protext_id, uniqueness: true, allow_nil: true
 	validates :subdomain,
 						uniqueness: true,
 						format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must use lowercase letters, numbers, or hyphens" },

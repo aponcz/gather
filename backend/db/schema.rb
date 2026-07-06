@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_06_090000) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -54,7 +54,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_06_090000) do
     t.date "delinquent_on"
     t.date "suspended_on"
     t.string "custom_domain"
+    t.uuid "protext_id"
     t.index ["custom_domain"], name: "index_companies_on_custom_domain", unique: true
+    t.index ["protext_id"], name: "index_companies_on_protext_id", unique: true
     t.index ["subdomain"], name: "index_companies_on_subdomain", unique: true
   end
 
@@ -106,6 +108,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_06_090000) do
     t.string "logo_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "protext_id"
     t.index ["company_id", "status"], name: "index_invites_on_company_id_and_status"
     t.index ["company_id"], name: "index_invites_on_company_id"
     t.index ["contact_id"], name: "index_invites_on_contact_id"
@@ -131,7 +134,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_06_090000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "escalation_level", default: 1
-    t.index ["invite_id", "escalation_level"], name: "index_reminders_on_invite_id_and_escalation_level", unique: true, where: "((status)::text = ANY ((ARRAY['scheduled'::character varying, 'sent'::character varying])::text[]))"
+    t.index ["invite_id", "escalation_level"], name: "index_reminders_on_invite_id_and_escalation_level", unique: true, where: "((status)::text = ANY (ARRAY[('scheduled'::character varying)::text, ('sent'::character varying)::text]))"
     t.index ["invite_id"], name: "index_reminders_on_invite_id"
     t.index ["status", "send_at"], name: "index_reminders_on_status_and_send_at"
   end
@@ -199,6 +202,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_06_090000) do
     t.integer "password_archived_count", default: 0
     t.datetime "password_changed_at"
     t.boolean "allow_password_change", default: false
+    t.string "goprotext_refresh_token"
     t.index ["company_id", "email"], name: "index_users_on_company_id_and_email", unique: true
     t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true

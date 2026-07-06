@@ -71,6 +71,14 @@ module Api
         }, status: :created
       end
 
+      def import_loans
+        result = ProtextLoansImportService.new(company: current_company, user: current_user).call
+        render json: result, status: :created
+      rescue ProtextLoansImportService::Error => e
+        Rails.logger.error("ProText loans import failed: #{e.message}")
+        render json: { error: "protext_sync_failed", details: e.message }, status: :bad_gateway
+      end
+
       def update
         invite.update!(invite_params)
         AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "invite.updated")
