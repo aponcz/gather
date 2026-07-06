@@ -33,7 +33,13 @@ export function Contacts() {
       </form>
       <div className="card table-card">
         <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead><tbody>
-          {contacts.map(c => <tr key={c.id}><td>{c.name}</td><td>{c.email}</td><td>{c.phone || '—'}</td></tr>)}
+          {contacts.length === 0 ? (
+            <tr>
+              <td colSpan={3} className="muted">No contacts yet.</td>
+            </tr>
+          ) : (
+            contacts.map(c => <tr key={c.id}><td>{c.name}</td><td>{c.email}</td><td>{c.phone || '—'}</td></tr>)
+          )}
         </tbody></table>
       </div>
     </div>
