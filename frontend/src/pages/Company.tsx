@@ -30,9 +30,9 @@ const emptyForm: CompanyForm = {
 };
 
 function roleLabel(role: 'owner' | 'admin' | 'member') {
-  if (role === 'owner') return 'God';
+  if (role === 'owner') return 'Owner';
   if (role === 'admin') return 'Admin';
-  return 'Customer';
+  return 'Member';
 }
 
 export function Company() {
@@ -225,9 +225,9 @@ export function Company() {
             <label>
               Role
               <select value={memberRole} onChange={(e) => setMemberRole(e.target.value as 'owner' | 'admin' | 'member')}>
-                <option value="owner">God</option>
+                <option value="owner">Owner</option>
                 <option value="admin">Admin</option>
-                <option value="member">Customer</option>
+                <option value="member">Member</option>
               </select>
             </label>
             {memberError && <div className="error">{memberError}</div>}
@@ -295,9 +295,9 @@ export function Company() {
                         disabled={updatingMemberId === member.id}
                         onChange={(e) => void updateMemberRole(member.id, e.target.value as 'owner' | 'admin' | 'member')}
                       >
-                        <option value="owner">God</option>
+                        <option value="owner">Owner</option>
                         <option value="admin">Admin</option>
-                        <option value="member">Customer</option>
+                        <option value="member">Member</option>
                       </select>
                     </td>
                   </tr>

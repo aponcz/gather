@@ -34,16 +34,24 @@ export function Dashboard() {
       <div className="card table-card">
         <table>
           <thead><tr><th>Title</th><th>Client</th><th>Status</th><th>Complete</th><th>Created</th><th>Due</th></tr></thead>
-          <tbody>{invites.map((invite) => (
-            <tr key={invite.id}>
-              <td><Link to={`/invites/${invite.id}`}>{invite.title}</Link></td>
-              <td>{invite.contact?.name ?? '—'}</td>
-              <td><StatusBadge status={invite.status} /></td>
-              <td>{getPercentComplete(invite)}%</td>
-              <td>{invite.created_at ? new Date(invite.created_at).toLocaleDateString() : '—'}</td>
-              <td>{invite.due_at ? new Date(invite.due_at).toLocaleDateString() : '—'}</td>
-            </tr>
-          ))}</tbody>
+          <tbody>
+            {invites.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="muted">No invites yet.</td>
+              </tr>
+            ) : (
+              invites.map((invite) => (
+                <tr key={invite.id}>
+                  <td><Link to={`/invites/${invite.id}`}>{invite.title}</Link></td>
+                  <td>{invite.contact?.name ?? '—'}</td>
+                  <td><StatusBadge status={invite.status} /></td>
+                  <td>{getPercentComplete(invite)}%</td>
+                  <td>{invite.created_at ? new Date(invite.created_at).toLocaleDateString() : '—'}</td>
+                  <td>{invite.due_at ? new Date(invite.due_at).toLocaleDateString() : '—'}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
         </table>
       </div>
     </section>
