@@ -10,6 +10,7 @@ export function NewInvite() {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [form, setForm] = useState({ contact_ids: [] as string[], title: 'SBA Loan Package', message: 'Please upload the requested documents.', due_at: '' });
+  const [recipients, setRecipients] = useState<Array<{ name: string; email: string; phone: string }>>([{ name: '', email: '', phone: '' }]);
   const [sections, setSections] = useState<DraftSection[]>([
     {
       name: 'Requested documents',
@@ -52,6 +53,18 @@ export function NewInvite() {
     }));
   }
 
+  function updateRecipient(index: number, patch: Partial<{ name: string; email: string; phone: string }>) {
+    setRecipients(recipients.map((recipient, recipientIndex) => (recipientIndex === index ? { ...recipient, ...patch } : recipient)));
+  }
+
+  function addRecipient() {
+    setRecipients([...recipients, { name: '', email: '', phone: '' }]);
+  }
+
+  function removeRecipient(index: number) {
+    setRecipients(recipients.filter((_, recipientIndex) => recipientIndex !== index));
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -59,6 +72,13 @@ export function NewInvite() {
     try {
       const result = await adminApi.bulkCreateInvites({
         contact_ids: form.contact_ids,
+        recipients: recipients
+          .map((recipient) => ({
+            name: recipient.name.trim(),
+            email: recipient.email.trim(),
+            phone: recipient.phone.trim() || undefined
+          }))
+          .filter((recipient) => recipient.email),
         title: form.title,
         message: form.message,
         due_at: form.due_at ? new Date(form.due_at).toISOString() : undefined,
@@ -80,7 +100,17 @@ export function NewInvite() {
   return <section>
     <h1>Create invite</h1>
     <form className="card form-stack" onSubmit={submit}>
-      <label>Clients
+      <h2>Recipients</h2>
+      {recipients.map((recipient, index) => (
+        <div className="request-row" key={`recipient-${index}`}>
+          <input placeholder="Name" value={recipient.name} onChange={(e) => updateRecipient(index, { name: e.target.value })} />
+          <input placeholder="Email" type="email" value={recipient.email} onChange={(e) => updateRecipient(index, { email: e.target.value })} />
+          <input placeholder="Phone" value={recipient.phone} onChange={(e) => updateRecipient(index, { phone: e.target.value })} />
+          <button type="button" className="secondary" onClick={() => removeRecipient(index)} disabled={recipients.length === 1}>Remove</button>
+        </div>
+      ))}
+      <button type="button" className="secondary" onClick={addRecipient}>Add recipient</button>
+      <label>Additional Recipients
         <select
           multiple
           value={form.contact_ids}
@@ -93,6 +123,8 @@ export function NewInvite() {
           {contacts.map(c => <option key={c.id} value={c.id}>{c.name} — {c.email}</option>)}
         </select>
       </label>
+
+
       <label>Title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
       <label>Message<textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} /></label>
       <label>Due date<input type="datetime-local" value={form.due_at} onChange={(e) => setForm({ ...form, due_at: e.target.value })} /></label>
@@ -111,7 +143,12 @@ export function NewInvite() {
       </div>)}
       <button type="button" className="secondary" onClick={addSection}>Add section</button>
       {error && <div className="error">{error}</div>}
-      <button className="primary" disabled={submitting || form.contact_ids.length === 0}>{submitting ? 'Sending invites…' : 'Create and send invites'}</button>
+      <button
+        className="primary"
+        disabled={submitting || (form.contact_ids.length === 0 && recipients.every((recipient) => !recipient.email.trim()))}
+      >
+        {submitting ? 'Sending invites…' : 'Create and send invites'}
+      </button>
     </form>
   </section>;
 }

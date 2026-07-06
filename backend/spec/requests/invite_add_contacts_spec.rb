@@ -58,10 +58,25 @@ RSpec.describe 'Invite add contacts', type: :request do
       expect(response).to have_http_status(:ok)
       body = json_body
       expect(body['added_contact_count']).to eq(1)
-      expect(body.dig('invite', 'contacts').map { |contact| contact['id'] }).to include(contact_two.id)
+      expect(body.dig('invite', 'contacts').map { |contact| contact['contact_id'] }).to include(contact_two.id)
 
-      expect(invite.reload.invite_contacts.pluck(:contact_id)).to match_array([contact_one.id, contact_two.id])
-      expect(SendInviteJob).to have_received(:perform_later).with(invite.id, contact_two.id).once
+      expect(invite.reload.invite_contacts.pluck(:email)).to match_array([contact_one.email, contact_two.email])
+      expect(SendInviteJob).to have_received(:perform_later).once
+    end
+
+    it 'adds non-global recipients directly to an existing invite' do
+      allow(SendInviteJob).to receive(:perform_later)
+
+      post "/api/v1/invites/#{invite.id}/add_contacts", params: {
+        recipients: [
+          { name: 'Extra Borrower', email: "extra-#{SecureRandom.hex(4)}@acme.test" }
+        ]
+      }.to_json, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      body = json_body
+      expect(body['added_contact_count']).to eq(1)
+      expect(invite.reload.invite_contacts.pluck(:email).any? { |email| email.start_with?('extra-') }).to eq(true)
     end
 
     it 'returns validation error when contact is missing' do

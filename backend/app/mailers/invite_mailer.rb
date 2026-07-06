@@ -1,15 +1,20 @@
 class InviteMailer < ApplicationMailer
   def invite_email
     @invite = params[:invite]
-    @contact = params[:contact] || @invite.contact
-    mail(to: @contact.email, subject: "Document request: #{@invite.title}") do |format|
+    @invite_contact = params[:invite_contact]
+    @contact = params[:contact] || @invite_contact&.contact || @invite.contact
+    recipient_email = @invite_contact&.email || @contact&.email || @invite.primary_recipient_email
+    mail(to: recipient_email, subject: "Document request: #{@invite.title}") do |format|
       format.text { render plain: "Please complete your request: #{client_url(@invite)}" }
     end
   end
 
   def reminder_email
     @invite = params[:invite]
-    mail(to: @invite.contact.email, subject: "Reminder: #{@invite.title}") do |format|
+    recipient_email = @invite.primary_recipient_email
+    return if recipient_email.blank?
+
+    mail(to: recipient_email, subject: "Reminder: #{@invite.title}") do |format|
       format.text { render plain: "Reminder to complete your request: #{client_url(@invite)}" }
     end
   end
@@ -27,7 +32,10 @@ class InviteMailer < ApplicationMailer
       Complete your request here: #{client_url(@invite)}
     TEXT
 
-    mail(to: @invite.contact.email, subject: "Daily summary: #{@invite.title}") do |format|
+    recipient_email = @invite.primary_recipient_email
+    return if recipient_email.blank?
+
+    mail(to: recipient_email, subject: "Daily summary: #{@invite.title}") do |format|
       format.text { render plain: body }
     end
   end

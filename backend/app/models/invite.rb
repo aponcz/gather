@@ -37,4 +37,27 @@ class Invite < ApplicationRecord
   def set_public_token
     self.public_token ||= SecureRandom.urlsafe_base64(32)
   end
+
+  public
+
+  def recipient_contacts
+    recipients = invite_contacts.includes(:contact).map(&:recipient_payload)
+    if recipients.empty? && contact.present?
+      recipients = [{
+        "id" => contact.id,
+        "name" => contact.name,
+        "email" => contact.email,
+        "phone" => contact.phone
+      }]
+    end
+    recipients
+  end
+
+  def primary_recipient
+    recipient_contacts.first
+  end
+
+  def primary_recipient_email
+    primary_recipient && primary_recipient["email"]
+  end
 end

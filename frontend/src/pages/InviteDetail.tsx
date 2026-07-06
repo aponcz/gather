@@ -32,7 +32,7 @@ export function InviteDetail() {
   async function addContacts() {
     if (!invite || selectedContactIds.length === 0) return;
     try {
-      const result = await adminApi.addInviteContacts(invite.id, selectedContactIds);
+      const result = await adminApi.addInviteContacts(invite.id, { contact_ids: selectedContactIds });
       setInvite(result.invite);
       setSelectedContactIds([]);
     } catch (err) {
@@ -47,7 +47,9 @@ export function InviteDetail() {
   const invitees = (invite.contacts && invite.contacts.length > 0)
     ? invite.contacts
     : (invite.contact ? [invite.contact] : []);
-  const inviteeIdSet = new Set(invitees.map((contact) => String(contact.id)));
+  const inviteeIdSet = new Set(
+    invitees.map((contact) => String(('contact_id' in contact ? contact.contact_id : undefined) ?? contact.id))
+  );
   const addableContacts = contacts.filter((contact) => !inviteeIdSet.has(String(contact.id)));
   const totalRequestedDocuments = invite.request_items?.length || 0;
   const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
