@@ -159,12 +159,20 @@ RSpec.describe 'Auth', type: :request do
     it 'creates user from oauth profile and redirects with app token' do
       state = SecureRandom.urlsafe_base64(16)
       Rails.cache.write("oauth:goprotext:state:#{state}", true, expires_in: 10.minutes)
+      allow(ImportProtextLoansJob).to receive(:perform_now)
 
       allow_any_instance_of(Api::V1::AuthController)
         .to receive(:perform_http_request)
         .and_return(
-          build_http_success('access_token' => 'oauth-access-token'),
-          build_http_success('email' => 'oauth-user@example.test', 'name' => 'OAuth User')
+          build_http_success('access_token' => 'oauth-access-token', 'refresh_token' => 'oauth-refresh-token'),
+          build_http_success(
+            'email' => 'oauth-user@example.test',
+            'name' => 'OAuth User',
+            'companies' => [
+              { 'id' => '11111111-1111-4111-8111-111111111111', 'name' => 'OAuth Company One' },
+              { 'id' => '22222222-2222-4222-8222-222222222222', 'name' => 'OAuth Company Two' }
+            ]
+          )
         )
 
       get '/api/v1/auth/oauth/goprotext/callback', params: { state: state, code: 'auth-code' }, headers: json_headers
@@ -182,8 +190,14 @@ RSpec.describe 'Auth', type: :request do
       expect(user.email).to eq('oauth-user@example.test')
       expect(user.name).to eq('OAuth User')
       expect(user.role).to eq('customer')
+      expect(user.goprotext_refresh_token).to eq('oauth-refresh-token')
       expect(user.membership_for(user.company)).to be_present
       expect(user.membership_for(user.company).role).to eq('member')
+      synced_company = Company.find_by(protext_id: '11111111-1111-4111-8111-111111111111')
+      expect(synced_company).to be_present
+      expect(synced_company.name).to eq('OAuth Company One')
+      expect(user.membership_for(synced_company)).to be_present
+      expect(ImportProtextLoansJob).to have_received(:perform_now).with(user.company.id, user.id, 'oauth-access-token')
     end
 
     it 'ensures membership for existing oauth user before issuing token' do
@@ -199,20 +213,33 @@ RSpec.describe 'Auth', type: :request do
 
       state = SecureRandom.urlsafe_base64(16)
       Rails.cache.write("oauth:goprotext:state:#{state}", true, expires_in: 10.minutes)
+      allow(ImportProtextLoansJob).to receive(:perform_now)
 
       allow_any_instance_of(Api::V1::AuthController)
         .to receive(:perform_http_request)
         .and_return(
-          build_http_success('access_token' => 'oauth-access-token'),
-          build_http_success('email' => existing_user.email, 'name' => 'Legacy OAuth User')
+          build_http_success('access_token' => 'oauth-access-token', 'refresh_token' => 'updated-refresh-token'),
+          build_http_success(
+            'email' => existing_user.email,
+            'name' => 'Legacy OAuth User',
+            'companies' => [
+              { 'id' => '33333333-3333-4333-8333-333333333333', 'name' => 'Legacy OAuth Company' }
+            ]
+          )
         )
 
       get '/api/v1/auth/oauth/goprotext/callback', params: { state: state, code: 'auth-code' }, headers: json_headers
 
       expect(response).to have_http_status(:found)
       token = URI.decode_www_form(URI.parse(response.headers['Location']).query.to_s).to_h.fetch('token')
+      decoded = JwtService.decode(token)
 
       expect(existing_user.reload.membership_for(existing_company)).to be_present
+      expect(existing_user.goprotext_refresh_token).to eq('updated-refresh-token')
+      synced_company = Company.find_by(protext_id: '33333333-3333-4333-8333-333333333333')
+      expect(synced_company).to be_present
+      expect(existing_user.membership_for(synced_company)).to be_present
+      expect(ImportProtextLoansJob).to have_received(:perform_now).with(decoded.fetch('company_id'), existing_user.id, 'oauth-access-token')
 
       get '/api/v1/me', headers: { 'Authorization' => "Bearer #{token}" }
       expect(response).to have_http_status(:ok)

@@ -36,6 +36,7 @@ Rails.application.routes.draw do
       resources :invites, only: %i[index show create update] do
         collection do
           post :bulk_create
+          post :import_loans
         end
         member do
           post :add_contacts

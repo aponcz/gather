@@ -5,7 +5,7 @@ class User < ApplicationRecord
 
   attr_reader :password
 
-  belongs_to :company, inverse_of: :primary_users, optional: true
+  belongs_to :company, optional: true
   has_many :company_memberships, dependent: :destroy
   has_many :companies, through: :company_memberships
   has_many :audit_events, dependent: :nullify

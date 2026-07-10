@@ -1,9 +1,13 @@
 org = Company.find_or_create_by!(name: "Demo Company")
-user = org.users.find_or_create_by!(email: "admin@example.com") do |u|
-  u.name = "Admin User"
-  u.password = "password123"
-  u.role = :admin
-end
+user = User.find_or_initialize_by(email: "admin@example.com")
+user.assign_attributes(
+  company: org,
+  name: "Admin User",
+  password: "password123",
+  role: :admin
+)
+user.save!
+org.company_memberships.find_or_create_by!(user: user) { |membership| membership.role = "admin" }
 contact = org.contacts.find_or_create_by!(email: "client@example.com") { |c| c.name = "Client Contact" }
 invite = org.invites.find_or_create_by!(title: "Demo Document Request", contact: contact, created_by: user) do |i|
   i.message = "Please upload the requested documents."
