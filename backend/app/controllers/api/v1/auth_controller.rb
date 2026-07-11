@@ -303,7 +303,7 @@ module Api
         company = if requested_company_id.present?
           user.companies.find(requested_company_id)
         else
-          user.companies.last || user.company || raise(ActiveRecord::RecordNotFound)
+          user.companies.find_by(name: 'mysherpas') || user.company || raise(ActiveRecord::RecordNotFound)
         end
 
         ensure_user_membership_for_company!(user, company)

@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import * as adminApi from '../api/admin';
-import { Contact, Invite, UploadedFile } from '../types';
+import { Contact, Loan, UploadedFile } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 
-export function InviteDetail() {
+function formatCurrencyFromCents(value?: number | null) {
+  if (value === null || value === undefined) return '—';
+  const amount = value / 100;
+
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(amount);
+}
+
+export function LoanDetail() {
   const { id } = useParams();
-  const [invite, setInvite] = useState<Invite | null>(null);
+  const [loan, setLoan] = useState<Loan | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() { if (id) setInvite(await adminApi.getInvite(id)); }
+  async function load() { if (id) setLoan(await adminApi.getLoan(id)); }
   async function loadContacts() { setContacts(await adminApi.listContacts()); }
   useEffect(() => {
     Promise.all([load(), loadContacts()]).catch((err) => setError(err.message));
@@ -21,19 +28,19 @@ export function InviteDetail() {
   async function reject(file: UploadedFile) { const reason = window.prompt('Reason for rejection?', 'Please upload a clearer copy.'); if (reason) { await adminApi.rejectFile(file.id, reason); await load(); } }
   async function download(file: UploadedFile) { const result = await adminApi.getDownloadUrl(file.id); window.open(result.url, '_blank'); }
   async function downloadAllFiles() {
-    if (!invite) return;
+    if (!loan) return;
     try {
-      await adminApi.downloadAllFilesZip(invite.id);
+      await adminApi.downloadAllFilesZip(loan.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Download failed');
     }
   }
-  async function send() { if (invite) { await adminApi.sendInvite(invite.id); await load(); } }
+  async function send() { if (loan) { await adminApi.sendLoan(loan.id); await load(); } }
   async function addContacts() {
-    if (!invite || selectedContactIds.length === 0) return;
+    if (!loan || selectedContactIds.length === 0) return;
     try {
-      const result = await adminApi.addInviteContacts(invite.id, { contact_ids: selectedContactIds });
-      setInvite(result.invite);
+      const result = await adminApi.addLoanContacts(loan.id, { contact_ids: selectedContactIds });
+      setLoan(result.loan);
       setSelectedContactIds([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not add contacts');
@@ -41,37 +48,37 @@ export function InviteDetail() {
   }
 
   if (error) return <div className="error">{error}</div>;
-  if (!invite) return <div className="center-card">Loading invite…</div>;
+  if (!loan) return <div className="center-card">Loading loan…</div>;
 
-  const portalUrl = invite.public_token ? `${window.location.origin}/client/invites/${invite.public_token}` : '';
-  const invitees = (invite.contacts && invite.contacts.length > 0)
-    ? invite.contacts
-    : (invite.contact ? [invite.contact] : []);
-  const inviteeIdSet = new Set(
-    invitees.map((contact) => String(('contact_id' in contact ? contact.contact_id : undefined) ?? contact.id))
+  const portalUrl = loan.public_token ? `${window.location.origin}/client/loans/${loan.public_token}` : '';
+  const recipients = (loan.contacts && loan.contacts.length > 0)
+    ? loan.contacts
+    : (loan.contact ? [loan.contact] : []);
+  const recipientIdSet = new Set(
+    recipients.map((contact) => String(('contact_id' in contact ? contact.contact_id : undefined) ?? contact.id))
   );
-  const addableContacts = contacts.filter((contact) => !inviteeIdSet.has(String(contact.id)));
-  const totalRequestedDocuments = invite.request_items?.length || 0;
-  const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
+  const addableContacts = contacts.filter((contact) => !recipientIdSet.has(String(contact.id)));
+  const totalRequestedDocuments = loan.request_items?.length || 0;
+  const uploadedDocuments = (loan.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
   const percentComplete = totalRequestedDocuments > 0 ? Math.round((uploadedDocuments / totalRequestedDocuments) * 100) : 0;
-  const groupedRequestedItems = (invite.request_items || []).reduce<Record<string, Invite['request_items']>>((groups, item) => {
+  const groupedRequestedItems = (loan.request_items || []).reduce<Record<string, Loan['request_items']>>((groups, item) => {
     const sectionName = item.section_name?.trim() || 'Requested items';
     if (!groups[sectionName]) groups[sectionName] = [];
     groups[sectionName]!.push(item);
     return groups;
-  }, {} as Record<string, NonNullable<Invite['request_items']>>);
+  }, {} as Record<string, NonNullable<Loan['request_items']>>);
 
-  const sortedAuditEvents = [...(invite.audit_events || [])].sort(
+  const sortedAuditEvents = [...(loan.audit_events || [])].sort(
     (firstEvent, secondEvent) => new Date(secondEvent.created_at).getTime() - new Date(firstEvent.created_at).getTime()
   );
 
   function formatAuditAction(action: string) {
     const actionLabels: Record<string, string> = {
-      'invite.created': 'Invite created',
-      'invite.updated': 'Invite updated',
-      'invite.cancelled': 'Invite cancelled',
-      'invite.viewed': 'Invite viewed',
-      'invite.email_sent': 'Invite email sent',
+      'loan.created': 'Loan created',
+      'loan.updated': 'Loan updated',
+      'loan.cancelled': 'Loan cancelled',
+      'loan.viewed': 'Loan viewed',
+      'loan.email_sent': 'Loan email sent',
       'file.uploaded': 'File uploaded',
       'request_item.created': 'Requested item added'
     };
@@ -108,19 +115,26 @@ export function InviteDetail() {
   return <section>
     <div className="page-header">
       <div>
-        <h1>{invite.title}</h1>
-        {invitees.length > 0 ? (
+        <h1>{loan.title}</h1>
+        {recipients.length > 0 ? (
           <div className="muted">
-            <p><strong>Invitees ({invitees.length})</strong></p>
-            {invitees.map((contact) => (
+            <p><strong>Recipients ({recipients.length})</strong></p>
+            {recipients.map((contact) => (
               <p key={contact.id}>{contact.name} · {contact.email}</p>
             ))}
           </div>
         ) : (
-          <p className="muted">No invitees</p>
+          <p className="muted">No recipients</p>
         )}
       </div>
-      <div className="actions"><StatusBadge status={invite.status} /><button className="primary" onClick={send}>Send invite</button></div>
+      <div className="actions"><StatusBadge status={loan.status} /><button className="primary" onClick={send}>Send loan</button></div>
+    </div>
+    <div className="card">
+      <h2>Loan details</h2>
+      <div className="detail-grid">
+        <div><span className="muted">Amount</span><strong>{formatCurrencyFromCents(loan.loan_amount_in_cents)}</strong></div>
+        <div><span className="muted">Type</span><strong>{loan.loan_type || '—'}</strong></div>
+      </div>
     </div>
     <div className="card">
       <h2>Client portal link</h2>
@@ -129,7 +143,7 @@ export function InviteDetail() {
       <p><Link to={portalUrl.replace(window.location.origin, '')}>Open client portal route</Link></p>
     </div>
     <div className="card">
-      <h2>Add invitees</h2>
+      <h2>Add recipients</h2>
       <label>Select additional contacts
         <select
           multiple

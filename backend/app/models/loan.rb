@@ -1,12 +1,12 @@
-class Invite < ApplicationRecord
-  belongs_to :company, inverse_of: :invites
+class Loan < ApplicationRecord
+  belongs_to :company, inverse_of: :loans
   belongs_to :contact, optional: true
   belongs_to :created_by, class_name: "User"
   has_many :request_items, dependent: :destroy
   has_many :uploaded_files, through: :request_items
   has_many :audit_events, dependent: :destroy
-  has_many :invite_contacts, dependent: :destroy
-  has_many :contacts, through: :invite_contacts
+  has_many :loan_contacts, dependent: :destroy
+  has_many :contacts, through: :loan_contacts
 
   enum status: {
     draft: "draft",
@@ -41,7 +41,7 @@ class Invite < ApplicationRecord
   public
 
   def recipient_contacts
-    recipients = invite_contacts.includes(:contact).map(&:recipient_payload)
+    recipients = loan_contacts.includes(:contact).map(&:recipient_payload)
     if recipients.empty? && contact.present?
       recipients = [{
         "id" => contact.id,

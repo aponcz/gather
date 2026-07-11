@@ -1,8 +1,8 @@
 class AuditLogger
-  def self.log!(company:, action:, invite: nil, user: nil, contact: nil, metadata: {})
+  def self.log!(company:, action:, loan: nil, user: nil, contact: nil, metadata: {})
     AuditEvent.create!(
       company: company,
-      invite: invite,
+      loan: loan,
       user: user,
       contact: contact,
       action: action,

@@ -2,8 +2,8 @@ class Company < ApplicationRecord
 	has_many :company_memberships, dependent: :destroy
 	has_many :users, through: :company_memberships
 	has_many :contacts, dependent: :destroy, inverse_of: :company
-	has_many :invites, dependent: :destroy, inverse_of: :company
-	has_many :request_items, through: :invites
+	has_many :loans, dependent: :destroy, inverse_of: :company
+	has_many :request_items, through: :loans
 	has_many :uploaded_files, through: :request_items
 
 	enum status: {

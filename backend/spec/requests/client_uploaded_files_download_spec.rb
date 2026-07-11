@@ -32,8 +32,8 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
     )
   end
 
-  let!(:invite) do
-    Invite.create!(
+  let!(:loan) do
+    Loan.create!(
       company: company,
       contact: contact,
       created_by: creator,
@@ -43,7 +43,7 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
 
   let!(:request_item) do
     RequestItem.create!(
-      invite: invite,
+      loan: loan,
       title: 'Tax Returns',
       kind: 'document',
       required: true
@@ -54,7 +54,7 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
     UploadedFile.create!(
       request_item: request_item,
       uploaded_by_contact: contact,
-      storage_key: 'org-1/invite-1/request-1/file.pdf',
+      storage_key: 'org-1/loan-1/request-1/file.pdf',
       filename: 'file.pdf',
       content_type: 'application/pdf'
     )
@@ -77,7 +77,7 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
   let(:headers) { { 'Authorization' => "Bearer #{client_token}" } }
 
   describe 'GET /api/v1/client/uploaded-files/:id/download_url' do
-    it 'returns a presigned download url for a file owned by the current contact invite' do
+    it 'returns a presigned download url for a file owned by the current contact loan' do
       allow_any_instance_of(StorageService)
         .to receive(:presigned_download_url)
         .with(key: uploaded_file.storage_key)
@@ -96,7 +96,7 @@ RSpec.describe 'Client uploaded file download URL', type: :request do
       expect(json_body).to eq({ 'error' => 'missing_token' })
     end
 
-    it 'returns not found when file does not belong to current contact invites' do
+    it 'returns not found when file does not belong to current contact loans' do
       get "/api/v1/client/uploaded-files/#{uploaded_file.id}/download_url", headers: { 'Authorization' => "Bearer #{other_client_token}" }
 
       expect(response).to have_http_status(:not_found)

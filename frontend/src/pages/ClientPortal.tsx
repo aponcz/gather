@@ -23,7 +23,7 @@ export function ClientPortal() {
     try {
       const result = await clientApi.createClientSession(magicToken);
       setToken(clientTokenKey, result.token);
-      alert('Client session saved. Open the invite link from the admin detail page.');
+      alert('Client session saved. Open the loan link from the admin detail page.');
       navigate('/client');
     } catch (err) { setError(err instanceof Error ? err.message : 'Invalid magic token'); }
   }

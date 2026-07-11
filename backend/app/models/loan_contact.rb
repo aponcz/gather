@@ -1,11 +1,11 @@
-class InviteContact < ApplicationRecord
-  belongs_to :invite
+class LoanContact < ApplicationRecord
+  belongs_to :loan
   belongs_to :contact, optional: true
 
-  validates :contact_id, uniqueness: { scope: :invite_id }, allow_nil: true
+  validates :contact_id, uniqueness: { scope: :loan_id }, allow_nil: true
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
-  validates :email, uniqueness: { scope: :invite_id, case_sensitive: false }
+  validates :email, uniqueness: { scope: :loan_id, case_sensitive: false }
 
   before_validation :apply_contact_defaults
 

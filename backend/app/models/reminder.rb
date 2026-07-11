@@ -1,5 +1,5 @@
 class Reminder < ApplicationRecord
-  belongs_to :invite
+  belongs_to :loan
 
   enum channel: { email: "email", sms: "sms" }
   enum status: { scheduled: "scheduled", sent: "sent", failed: "failed", cancelled: "cancelled" }

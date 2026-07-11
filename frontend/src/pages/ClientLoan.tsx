@@ -1,16 +1,23 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import * as clientApi from '../api/clientPortal';
-import { Invite, RequestItem } from '../types';
+import { Loan, RequestItem } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 
-export function ClientInvite() {
+function formatCurrencyFromCents(value?: number | null) {
+  if (value === null || value === undefined) return null;
+  const amount = value / 100;
+
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(amount);
+}
+
+export function ClientLoan() {
   const { publicToken } = useParams();
-  const [invite, setInvite] = useState<Invite | null>(null);
+  const [loan, setLoan] = useState<Loan | null>(null);
   const [uploading, setUploading] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() { if (publicToken) setInvite(await clientApi.getClientInvite(publicToken)); }
+  async function load() { if (publicToken) setLoan(await clientApi.getClientLoan(publicToken)); }
   useEffect(() => { load().catch((err) => setError(err.message)); }, [publicToken]);
 
   async function handleFile(itemId: number, event: ChangeEvent<HTMLInputElement>) {
@@ -36,24 +43,28 @@ export function ClientInvite() {
   }
 
   if (error) return <div className="center-card"><div className="error">{error}</div><Link to="/client">Sign in to client portal</Link></div>;
-  if (!invite) return <div className="center-card">Loading client invite…</div>;
+  if (!loan) return <div className="center-card">Loading client loan…</div>;
 
-  const totalRequestedDocuments = invite.request_items?.length || 0;
-  const uploadedDocuments = (invite.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
+  const totalRequestedDocuments = loan.request_items?.length || 0;
+  const uploadedDocuments = (loan.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
   const percentComplete = totalRequestedDocuments > 0 ? Math.round((uploadedDocuments / totalRequestedDocuments) * 100) : 0;
-  const groupedRequestedItems = (invite.request_items || []).reduce<Record<string, RequestItem[]>>((groups, item) => {
+  const groupedRequestedItems = (loan.request_items || []).reduce<Record<string, RequestItem[]>>((groups, item) => {
     const sectionName = item.section_name?.trim() || 'Requested items';
     if (!groups[sectionName]) groups[sectionName] = [];
     groups[sectionName].push(item);
     return groups;
   }, {});
+  const loanAmount = formatCurrencyFromCents(loan.loan_amount_in_cents);
 
   return <section className="client-page">
-    <div className="client-header" style={{ borderColor: invite.brand_color || undefined }}>
-      {invite.logo_url && <img src={invite.logo_url} alt="Company logo" />}
-      <h1>{invite.title}</h1>
-      <p>{invite.message}</p>
-      {invite.due_at && <p className="muted">Due {new Date(invite.due_at).toLocaleDateString()}</p>}
+    <div className="client-header" style={{ borderColor: loan.brand_color || undefined }}>
+      {loan.logo_url && <img src={loan.logo_url} alt="Company logo" />}
+      <h1>{loan.title}</h1>
+      <p>{loan.message}</p>
+      {(loanAmount || loan.loan_type) && (
+        <p className="muted">{[loanAmount, loan.loan_type].filter(Boolean).join(' · ')}</p>
+      )}
+      {loan.due_at && <p className="muted">Due {new Date(loan.due_at).toLocaleDateString()}</p>}
     </div>
     <div className="card">
       <h2>Requested documents</h2>

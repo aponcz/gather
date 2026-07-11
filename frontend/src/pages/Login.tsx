@@ -59,7 +59,7 @@ export function Login() {
     <div className="auth-page">
       <form className="card auth-card" onSubmit={submit}>
         <h1>{mode === 'login' ? 'Sign in' : 'Create your workspace'}</h1>
-        <p className="muted">Manage document collection invites, reviews, and secure client uploads.</p>
+        <p className="muted">Manage document collection loans, reviews, and secure client uploads.</p>
         {mode === 'register' && (
           <>
             <label>Company<input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></label>

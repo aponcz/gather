@@ -1,17 +1,17 @@
 module Api
   module V1
-    class InvitesController < ApplicationController
+    class LoansController < ApplicationController
       require "zip"
 
       before_action :authenticate_user!
 
       def index
-        invites = current_company.invites.includes(:contact, :invite_contacts, { request_items: :uploaded_files }).order(created_at: :desc)
-        render json: invites.map { |record| invite_payload(record) }
+        loans = current_company.loans.includes(:contact, :loan_contacts, { request_items: :uploaded_files }).order(created_at: :desc)
+        render json: loans.map { |record| loan_payload(record) }
       end
 
       def show
-        render json: invite_payload(invite, include_audit_events: true)
+        render json: loan_payload(loan, include_audit_events: true)
       end
 
       def create
@@ -23,20 +23,20 @@ module Api
           return render json: { error: "recipients_required" }, status: :unprocessable_entity
         end
 
-        invite = Invite.transaction do
-          created_invite = current_company.invites.create!(
-            invite_params.merge(
+        loan = Loan.transaction do
+          created_loan = current_company.loans.create!(
+            loan_params.merge(
               contact: recipients.first[:contact],
               created_by: current_user
             )
           )
-          create_request_items!(created_invite)
-          create_invite_recipients!(created_invite, recipients)
-          created_invite
+          create_request_items!(created_loan)
+          create_loan_recipients!(created_loan, recipients)
+          created_loan
         end
 
-        AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "invite.created")
-        render json: invite_payload(invite), status: :created
+        AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "loan.created")
+        render json: loan_payload(loan), status: :created
       end
 
       def bulk_create
@@ -48,26 +48,26 @@ module Api
           return render json: { error: "recipients_required" }, status: :unprocessable_entity
         end
 
-        created_invite = Invite.transaction do
-          invite = current_company.invites.create!(invite_params.merge(contact: recipients.first[:contact], created_by: current_user))
-          create_request_items!(invite)
+        created_loan = Loan.transaction do
+          loan = current_company.loans.create!(loan_params.merge(contact: recipients.first[:contact], created_by: current_user))
+          create_request_items!(loan)
 
-          added_recipients = create_invite_recipients!(invite, recipients)
+          added_recipients = create_loan_recipients!(loan, recipients)
 
-          invite.sent! unless invite.sent?
-          added_recipients.each do |invite_contact|
-            SendInviteJob.perform_later(invite.id, nil, invite_contact.id)
+          loan.sent! unless loan.sent?
+          added_recipients.each do |loan_contact|
+            SendLoanInviteJob.perform_later(loan.id, nil, loan_contact.id)
           end
-          AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "invite.created", metadata: { bulk_contact_count: added_recipients.length })
-          invite
+          AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "loan.created", metadata: { bulk_contact_count: added_recipients.length })
+          loan
         end
 
-        recipient_count = created_invite.invite_contacts.count
+        recipient_count = created_loan.loan_contacts.count
 
         render json: {
-          invite: invite_payload(created_invite),
+          loan: loan_payload(created_loan),
           contact_count: recipient_count,
-          message: "Invite created and sent to #{recipient_count} contacts"
+          message: "Loan created and sent to #{recipient_count} contacts"
         }, status: :created
       end
 
@@ -80,9 +80,9 @@ module Api
       end
 
       def update
-        invite.update!(invite_params)
-        AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "invite.updated")
-        render json: invite
+        loan.update!(loan_params)
+        AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "loan.updated")
+        render json: loan
       end
 
       def add_contacts
@@ -96,60 +96,60 @@ module Api
 
         added_recipients = []
 
-        Invite.transaction do
+        Loan.transaction do
           recipients.each do |recipient|
-            if invite.invite_contacts.where("LOWER(email) = ?", recipient[:email].downcase).exists?
+            if loan.loan_contacts.where("LOWER(email) = ?", recipient[:email].downcase).exists?
               next
             end
 
-            invite_contact = invite.invite_contacts.create!(
+            loan_contact = loan.loan_contacts.create!(
               contact: recipient[:contact],
               name: recipient[:name],
               email: recipient[:email],
               phone: recipient[:phone]
             )
-            added_recipients << invite_contact
+            added_recipients << loan_contact
           end
 
-          added_recipients.each do |invite_contact|
-            SendInviteJob.perform_later(invite.id, nil, invite_contact.id)
+          added_recipients.each do |loan_contact|
+            SendLoanInviteJob.perform_later(loan.id, nil, loan_contact.id)
           end
 
           AuditLogger.log!(
             company: current_company,
-            invite: invite,
+            loan: loan,
             user: current_user,
-            action: "invite.contacts_added",
+            action: "loan.contacts_added",
             metadata: { added_contact_count: added_recipients.length }
           )
         end
 
         render json: {
-          invite: invite_payload(invite.reload),
+          loan: loan_payload(loan.reload),
           added_contact_count: added_recipients.length
         }
       end
 
-      def send_invite
-        invite.sent! unless invite.sent?
-        if invite.invite_contacts.exists?
-          invite.invite_contacts.find_each do |recipient|
-            SendInviteJob.perform_later(invite.id, nil, recipient.id)
+      def send_loan
+        loan.sent! unless loan.sent?
+        if loan.loan_contacts.exists?
+          loan.loan_contacts.find_each do |recipient|
+            SendLoanInviteJob.perform_later(loan.id, nil, recipient.id)
           end
         else
-          SendInviteJob.perform_later(invite.id)
+          SendLoanInviteJob.perform_later(loan.id)
         end
-        render json: { status: "queued", invite: invite }
+        render json: { status: "queued", loan: loan }
       end
 
       def cancel
-        invite.cancelled!
-        AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "invite.cancelled")
-        render json: invite
+        loan.cancelled!
+        AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "loan.cancelled")
+        render json: loan
       end
 
       def download_all_files
-        request_items_with_files = invite.request_items.includes(:uploaded_files)
+        request_items_with_files = loan.request_items.includes(:uploaded_files)
         storage_service = StorageService.new
         used_names = Hash.new(0)
 
@@ -172,23 +172,23 @@ module Api
         end
 
         zip_data.rewind
-        archive_name = "#{invite.title.to_s.parameterize.presence || 'document-collection'}-files.zip"
+        archive_name = "#{loan.title.to_s.parameterize.presence || 'document-collection'}-files.zip"
         send_data zip_data.read, type: "application/zip", disposition: "attachment", filename: archive_name
       end
 
       private
 
-      def invite
-        @invite ||= current_company.invites.find(params[:id])
+      def loan
+        @loan ||= current_company.loans.find(params[:id])
       end
 
-      def invite_params
-        params.permit(:title, :message, :due_at, :brand_color, :logo_url)
+      def loan_params
+        params.permit(:title, :message, :due_at, :brand_color, :logo_url, :loan_amount_in_cents, :loan_type)
       end
 
-      def create_request_items!(invite)
+      def create_request_items!(loan)
         Array(params[:request_items]).each do |item|
-          invite.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required, :section_name))
+          loan.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required, :section_name))
         end
       end
 
@@ -239,9 +239,9 @@ module Api
         [recipients, missing_contact_ids]
       end
 
-      def create_invite_recipients!(invite, recipients)
+      def create_loan_recipients!(loan, recipients)
         recipients.map do |recipient|
-          invite.invite_contacts.create!(
+          loan.loan_contacts.create!(
             contact: recipient[:contact],
             name: recipient[:name],
             email: recipient[:email],
@@ -250,7 +250,7 @@ module Api
         end
       end
 
-      def invite_payload(record, include_audit_events: false)
+      def loan_payload(record, include_audit_events: false)
         payload = record.as_json(
           include: {
             contact: {},

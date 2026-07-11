@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'zip'
 
-RSpec.describe 'Invite download all files', type: :request do
+RSpec.describe 'Loan download all files', type: :request do
   let(:admin_email) { "admin-#{SecureRandom.hex(4)}@acme.test" }
   let(:contact_email) { "client1-#{SecureRandom.hex(4)}@acme.test" }
 
@@ -22,8 +22,8 @@ RSpec.describe 'Invite download all files', type: :request do
       email: contact_email
     )
   end
-  let!(:invite) do
-    Invite.create!(
+  let!(:loan) do
+    Loan.create!(
       company: company,
       contact: contact,
       created_by: user,
@@ -32,7 +32,7 @@ RSpec.describe 'Invite download all files', type: :request do
   end
   let!(:request_item) do
     RequestItem.create!(
-      invite: invite,
+      loan: loan,
       title: 'Tax Returns',
       kind: 'document',
       required: true
@@ -42,7 +42,7 @@ RSpec.describe 'Invite download all files', type: :request do
     UploadedFile.create!(
       request_item: request_item,
       uploaded_by_contact: contact,
-      storage_key: 'org-1/invite-1/request-1/file-1.pdf',
+      storage_key: 'org-1/loan-1/request-1/file-1.pdf',
       filename: 'file-1.pdf',
       content_type: 'application/pdf'
     )
@@ -51,7 +51,7 @@ RSpec.describe 'Invite download all files', type: :request do
     UploadedFile.create!(
       request_item: request_item,
       uploaded_by_contact: contact,
-      storage_key: 'org-1/invite-1/request-1/file-2.pdf',
+      storage_key: 'org-1/loan-1/request-1/file-2.pdf',
       filename: 'file-2.pdf',
       content_type: 'application/pdf'
     )
@@ -60,12 +60,12 @@ RSpec.describe 'Invite download all files', type: :request do
   let(:token) { JwtService.encode({ sub: user.id, company_id: company.id }, expires_in: 1.hour) }
   let(:headers) { { 'Authorization' => "Bearer #{token}" } }
 
-  describe 'GET /api/v1/invites/:id/download_all_files' do
-    it 'returns a zip archive containing all uploaded files for the invite' do
+  describe 'GET /api/v1/loans/:id/download_all_files' do
+    it 'returns a zip archive containing all uploaded files for the loan' do
       allow_any_instance_of(StorageService).to receive(:download).with(key: uploaded_file_one.storage_key).and_return('content-one')
       allow_any_instance_of(StorageService).to receive(:download).with(key: uploaded_file_two.storage_key).and_return('content-two')
 
-      get "/api/v1/invites/#{invite.id}/download_all_files", headers: headers
+      get "/api/v1/loans/#{loan.id}/download_all_files", headers: headers
 
       expect(response).to have_http_status(:ok)
       expect(response.headers['Content-Type']).to include('application/zip')
@@ -87,7 +87,7 @@ RSpec.describe 'Invite download all files', type: :request do
     it 'organizes files into section folders' do
       # Create request items with different sections
       financial_item = RequestItem.create!(
-        invite: invite,
+        loan: loan,
         title: 'Financial Statements',
         kind: 'document',
         required: true,
@@ -95,7 +95,7 @@ RSpec.describe 'Invite download all files', type: :request do
       )
 
       personal_item = RequestItem.create!(
-        invite: invite,
+        loan: loan,
         title: 'Personal ID',
         kind: 'document',
         required: true,
@@ -105,7 +105,7 @@ RSpec.describe 'Invite download all files', type: :request do
       financial_file = UploadedFile.create!(
         request_item: financial_item,
         uploaded_by_contact: contact,
-        storage_key: 'org-1/invite-1/request-2/statement.pdf',
+        storage_key: 'org-1/loan-1/request-2/statement.pdf',
         filename: 'statement.pdf',
         content_type: 'application/pdf'
       )
@@ -113,7 +113,7 @@ RSpec.describe 'Invite download all files', type: :request do
       personal_file = UploadedFile.create!(
         request_item: personal_item,
         uploaded_by_contact: contact,
-        storage_key: 'org-1/invite-1/request-3/id.pdf',
+        storage_key: 'org-1/loan-1/request-3/id.pdf',
         filename: 'id.pdf',
         content_type: 'application/pdf'
       )
@@ -123,7 +123,7 @@ RSpec.describe 'Invite download all files', type: :request do
       allow_any_instance_of(StorageService).to receive(:download).with(key: uploaded_file_one.storage_key).and_return('content-one')
       allow_any_instance_of(StorageService).to receive(:download).with(key: uploaded_file_two.storage_key).and_return('content-two')
 
-      get "/api/v1/invites/#{invite.id}/download_all_files", headers: headers
+      get "/api/v1/loans/#{loan.id}/download_all_files", headers: headers
 
       expect(response).to have_http_status(:ok)
 
@@ -143,7 +143,7 @@ RSpec.describe 'Invite download all files', type: :request do
     end
 
     it 'returns unauthorized when token is missing' do
-      get "/api/v1/invites/#{invite.id}/download_all_files"
+      get "/api/v1/loans/#{loan.id}/download_all_files"
 
       expect(response).to have_http_status(:unauthorized)
       expect(json_body).to eq({ 'error' => 'missing_token' })

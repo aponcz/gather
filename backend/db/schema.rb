@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_10_121000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
   create_table "audit_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "company_id", null: false
-    t.uuid "invite_id"
+    t.uuid "loan_id"
     t.uuid "user_id"
     t.uuid "contact_id"
     t.string "action", null: false
@@ -29,7 +29,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
     t.index ["company_id", "created_at"], name: "index_audit_events_on_company_id_and_created_at"
     t.index ["company_id"], name: "index_audit_events_on_company_id"
     t.index ["contact_id"], name: "index_audit_events_on_contact_id"
-    t.index ["invite_id"], name: "index_audit_events_on_invite_id"
+    t.index ["loan_id"], name: "index_audit_events_on_loan_id"
     t.index ["user_id"], name: "index_audit_events_on_user_id"
   end
 
@@ -83,19 +83,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
     t.index ["company_id"], name: "index_contacts_on_company_id"
   end
 
-  create_table "invite_contacts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "invite_id", null: false
+  create_table "loan_contacts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "loan_id", null: false
     t.uuid "contact_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
     t.string "email"
     t.string "phone"
-    t.index ["contact_id"], name: "index_invite_contacts_on_contact_id"
-    t.index ["invite_id", "contact_id"], name: "index_invite_contacts_on_invite_id_and_contact_id", unique: true
+    t.index ["contact_id"], name: "index_loan_contacts_on_contact_id"
+    t.index ["loan_id", "contact_id"], name: "index_loan_contacts_on_loan_id_and_contact_id", unique: true
   end
 
-  create_table "invites", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "loans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "company_id", null: false
     t.uuid "contact_id"
     t.uuid "created_by_id", null: false
@@ -109,11 +109,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "protext_id"
-    t.index ["company_id", "status"], name: "index_invites_on_company_id_and_status"
-    t.index ["company_id"], name: "index_invites_on_company_id"
-    t.index ["contact_id"], name: "index_invites_on_contact_id"
-    t.index ["created_by_id"], name: "index_invites_on_created_by_id"
-    t.index ["public_token"], name: "index_invites_on_public_token", unique: true
+    t.integer "loan_amount_in_cents"
+    t.string "loan_type"
+    t.index ["company_id", "status"], name: "index_loans_on_company_id_and_status"
+    t.index ["company_id"], name: "index_loans_on_company_id"
+    t.index ["contact_id"], name: "index_loans_on_contact_id"
+    t.index ["created_by_id"], name: "index_loans_on_created_by_id"
+    t.index ["public_token"], name: "index_loans_on_public_token", unique: true
   end
 
   create_table "old_passwords", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -125,7 +127,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
   end
 
   create_table "reminders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "invite_id", null: false
+    t.uuid "loan_id", null: false
     t.string "channel", default: "email", null: false
     t.string "status", default: "scheduled", null: false
     t.datetime "send_at", null: false
@@ -134,13 +136,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "escalation_level", default: 1
-    t.index ["invite_id", "escalation_level"], name: "index_reminders_on_invite_id_and_escalation_level", unique: true, where: "((status)::text = ANY (ARRAY[('scheduled'::character varying)::text, ('sent'::character varying)::text]))"
-    t.index ["invite_id"], name: "index_reminders_on_invite_id"
+    t.index ["loan_id", "escalation_level"], name: "index_reminders_on_loan_id_and_escalation_level", unique: true, where: "((status)::text = ANY (ARRAY[('scheduled'::character varying)::text, ('sent'::character varying)::text]))"
+    t.index ["loan_id"], name: "index_reminders_on_loan_id"
     t.index ["status", "send_at"], name: "index_reminders_on_status_and_send_at"
   end
 
   create_table "request_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "invite_id", null: false
+    t.uuid "loan_id", null: false
     t.string "title", null: false
     t.text "description"
     t.string "kind", default: "document", null: false
@@ -152,7 +154,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "section_name"
-    t.index ["invite_id"], name: "index_request_items_on_invite_id"
+    t.index ["loan_id"], name: "index_request_items_on_loan_id"
   end
 
   create_table "uploaded_files", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -212,18 +214,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_010000) do
 
   add_foreign_key "audit_events", "companies"
   add_foreign_key "audit_events", "contacts"
-  add_foreign_key "audit_events", "invites"
+  add_foreign_key "audit_events", "loans"
   add_foreign_key "audit_events", "users"
   add_foreign_key "company_memberships", "companies"
   add_foreign_key "company_memberships", "users"
   add_foreign_key "contacts", "companies"
-  add_foreign_key "invite_contacts", "contacts"
-  add_foreign_key "invite_contacts", "invites"
-  add_foreign_key "invites", "companies"
-  add_foreign_key "invites", "contacts"
-  add_foreign_key "invites", "users", column: "created_by_id"
-  add_foreign_key "reminders", "invites"
-  add_foreign_key "request_items", "invites"
+  add_foreign_key "loan_contacts", "contacts"
+  add_foreign_key "loan_contacts", "loans"
+  add_foreign_key "loans", "companies"
+  add_foreign_key "loans", "contacts"
+  add_foreign_key "loans", "users", column: "created_by_id"
+  add_foreign_key "reminders", "loans"
+  add_foreign_key "request_items", "loans"
   add_foreign_key "uploaded_files", "contacts", column: "uploaded_by_contact_id"
   add_foreign_key "uploaded_files", "request_items"
   add_foreign_key "uploaded_files", "users", column: "reviewed_by_id"
