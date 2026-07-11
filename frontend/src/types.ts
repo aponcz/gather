@@ -5,7 +5,7 @@ export type Contact = {
   phone?: string | null;
 };
 
-export type InviteRecipient = {
+export type LoanRecipient = {
   id: string | number;
   contact_id?: string | number | null;
   name: string;
@@ -35,18 +35,20 @@ export type RequestItem = {
   uploaded_files?: UploadedFile[];
 };
 
-export type Invite = {
+export type Loan = {
   id: number;
   title: string;
   message?: string | null;
   status: 'draft' | 'sent' | 'viewed' | 'completed' | 'cancelled';
   created_at?: string;
   due_at?: string | null;
+  loan_amount_in_cents?: number | null;
+  loan_type?: string | null;
   public_token?: string;
   brand_color?: string | null;
   logo_url?: string | null;
   contact?: Contact;
-  contacts?: InviteRecipient[];
+  contacts?: LoanRecipient[];
   request_items?: RequestItem[];
   audit_events?: AuditEvent[];
 };

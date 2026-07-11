@@ -1,6 +1,6 @@
 class AuditEvent < ApplicationRecord
   belongs_to :company
-  belongs_to :invite, optional: true
+  belongs_to :loan, optional: true
   belongs_to :user, optional: true
   belongs_to :contact, optional: true
 

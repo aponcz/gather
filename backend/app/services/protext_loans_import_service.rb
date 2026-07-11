@@ -15,15 +15,15 @@ class ProtextLoansImportService
     access_token = fetch_access_token
     loans = fetch_loans(access_token)
 
-    created_invites = []
+    created_loans = []
     skipped_count = 0
 
-    loans.each do |loan|
-      invite = build_invite_from_loan(loan)
-      if invite.nil?
+    loans.each do |payload|
+      loan = build_loan_from_protext_payload(payload)
+      if loan.nil?
         skipped_count += 1
       else
-        created_invites << invite
+        created_loans << loan
       end
     rescue StandardError => e
       Rails.logger.error("ProText loan import skipped loan due to error: #{e.class}: #{e.message}")
@@ -32,9 +32,9 @@ class ProtextLoansImportService
 
     {
       fetched_count: loans.length,
-      created_count: created_invites.length,
+      created_count: created_loans.length,
       skipped_count: skipped_count,
-      invites: created_invites.map { |invite| { id: invite.id, title: invite.title } }
+      loans: created_loans.map { |loan| { id: loan.id, title: loan.title } }
     }
   end
 
@@ -143,31 +143,34 @@ class ProtextLoansImportService
     []
   end
 
-  def build_invite_from_loan(loan)
-    loan_id = loan["id"]
+  def build_loan_from_protext_payload(payload)
+    loan_id = payload["id"]
 
-    if loan_id.present? && existing_invite_for_loan_id?(loan_id)
+    if loan_id.present? && existing_loan_for_protext_id?(loan_id)
       return nil
     end
 
-    title = build_invite_title(loan)
+    title = build_loan_title(payload)
 
-    Invite.transaction do
-      invite = company.invites.create!(
+    Loan.transaction do
+      loan = company.loans.create!(
         title: title || "ProText Loan",
         message: "OAuth imported from ProText loan sync.",
         created_by: user,
         contact: nil,
         status: "draft",
-        protext_id: loan_id
+        protext_id: loan_id,
+        loan_amount_in_cents: extract_loan_amount_in_cents(payload),
+        loan_type: extract_loan_type(payload),
+        created_at: payload["created_at"] || payload[:created_at]
       )
 
-      invite
+      loan
     end
   end
 
-  def existing_invite_for_loan_id?(loan_id)
-    company.invites.where(protext_id: loan_id).exists?
+  def existing_loan_for_protext_id?(loan_id)
+    company.loans.where(protext_id: loan_id).exists?
   end
 
   def extract_borrower(loan)
@@ -199,14 +202,28 @@ class ProtextLoansImportService
     email.split("@").first
   end
 
-  def build_invite_title(loan)
+  def build_loan_title(loan)
     return loan["borrower_name"]
   end
 
-  def build_invite_message(loan, loan_id)
+  def build_loan_message(loan, loan_id)
     base = (loan["message"] || loan[:message]).to_s.strip
     marker = loan_id.present? ? "[ProText Loan ID: #{loan_id}]" : "[ProText Loan]"
     [base.presence || "Imported from ProText loan sync.", marker].join("\n")
+  end
+
+  def extract_loan_amount_in_cents(loan)
+    raw_amount = loan["loan_amount"] || loan[:loan_amount] || loan["amount"] || loan[:amount] || loan["loanAmount"] || loan[:loanAmount]
+    return if raw_amount.blank?
+
+    (BigDecimal(raw_amount.to_s.gsub(/[,$]/, "")) * 100).round
+  rescue ArgumentError
+    nil
+  end
+
+  def extract_loan_type(loan)
+    raw_type = loan["loan_type_name"] || loan[:loan_type_name] || loan["loan_type"] || loan[:loan_type] || loan["type"] || loan[:type] || loan["loanType"] || loan[:loanType]
+    raw_type.to_s.strip.presence
   end
 
   def perform_http_request(uri, request)

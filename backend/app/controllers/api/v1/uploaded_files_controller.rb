@@ -10,15 +10,15 @@ module Api
       def approve
         uploaded_file.update!(status: :approved, reviewed_by: current_user, reviewed_at: Time.current)
         uploaded_file.request_item.approved!
-        uploaded_file.request_item.invite.refresh_status!
-        AuditLogger.log!(company: current_company, invite: uploaded_file.request_item.invite, user: current_user, action: "file.approved", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename })
+        uploaded_file.request_item.loan.refresh_status!
+        AuditLogger.log!(company: current_company, loan: uploaded_file.request_item.loan, user: current_user, action: "file.approved", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename })
         render json: uploaded_file
       end
 
       def reject
         uploaded_file.update!(status: :rejected, reviewed_by: current_user, reviewed_at: Time.current, rejection_reason: params[:reason])
         uploaded_file.request_item.rejected!
-        AuditLogger.log!(company: current_company, invite: uploaded_file.request_item.invite, user: current_user, action: "file.rejected", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename, reason: params[:reason] })
+        AuditLogger.log!(company: current_company, loan: uploaded_file.request_item.loan, user: current_user, action: "file.rejected", metadata: { uploaded_file_id: uploaded_file.id, filename: uploaded_file.filename, reason: params[:reason] })
         render json: uploaded_file
       end
 

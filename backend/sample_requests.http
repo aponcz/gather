@@ -32,8 +32,8 @@ Content-Type: application/json
   "phone": "+15555550100"
 }
 
-### Create invite with request items
-POST http://localhost:3000/api/v1/invites
+### Create loan with request items
+POST http://localhost:3000/api/v1/loans
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -48,8 +48,8 @@ Content-Type: application/json
   ]
 }
 
-### Bulk create invites (one per contact) and send magic-link emails
-POST http://localhost:3000/api/v1/invites/bulk_create
+### Bulk create loans (one per contact) and send magic-link emails
+POST http://localhost:3000/api/v1/loans/bulk_create
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -64,8 +64,8 @@ Content-Type: application/json
   ]
 }
 
-### Send invite
-POST http://localhost:3000/api/v1/invites/{{invite_id}}/send_invite
+### Send loan
+POST http://localhost:3000/api/v1/loans/{{loan_id}}/send_loan
 Authorization: Bearer {{token}}
 
 ### Client request magic link
@@ -80,8 +80,8 @@ Content-Type: application/json
 
 { "magic_token": "{{magic_token}}" }
 
-### Client view invite by public token
-GET http://localhost:3000/api/v1/client/invites/{{public_token}}
+### Client view loan by public token
+GET http://localhost:3000/api/v1/client/loans/{{public_token}}
 Authorization: Bearer {{client_token}}
 
 ### Client create presigned upload URL

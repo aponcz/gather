@@ -4,8 +4,8 @@ module Api
       before_action :authenticate_user!
 
       def create
-        item = invite.request_items.create!(item_params)
-        AuditLogger.log!(company: current_company, invite: invite, user: current_user, action: "request_item.created", metadata: { request_item_id: item.id })
+        item = loan.request_items.create!(item_params)
+        AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "request_item.created", metadata: { request_item_id: item.id })
         render json: item, status: :created
       end
 
@@ -21,12 +21,12 @@ module Api
 
       private
 
-      def invite
-        @invite ||= current_company.invites.find(params[:invite_id])
+      def loan
+        @loan ||= current_company.loans.find(params[:loan_id])
       end
 
       def item
-        @item ||= invite.request_items.find(params[:id])
+        @item ||= loan.request_items.find(params[:id])
       end
 
       def item_params

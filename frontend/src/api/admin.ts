@@ -1,7 +1,8 @@
 import { apiFetch, apiFetchBlob } from './client';
-import { Company, CompanyMember, Contact, Invite, UploadedFile, User } from '../types';
+import { Company, CompanyMember, Contact, Loan, UploadedFile, User } from '../types';
 
-type InviteRecipientInput = { name: string; email: string; phone?: string };
+type LoanRecipientInput = { name: string; email: string; phone?: string };
+type RequestItemInput = { title: string; description?: string; kind: string; required: boolean; section_name?: string };
 
 type AuthResponse = {
   token: string;
@@ -132,50 +133,54 @@ export function createContact(payload: { name: string; email: string; phone?: st
   return apiFetch<Contact>('/api/v1/contacts', { method: 'POST', body: JSON.stringify(payload) });
 }
 
-export function listInvites() {
-  return apiFetch<Invite[]>('/api/v1/invites');
+export function listLoans() {
+  return apiFetch<Loan[]>('/api/v1/loans');
 }
 
-export function getInvite(id: string | number) {
-  return apiFetch<Invite>(`/api/v1/invites/${id}`);
+export function getLoan(id: string | number) {
+  return apiFetch<Loan>(`/api/v1/loans/${id}`);
 }
 
-export function createInvite(payload: {
+export function createLoan(payload: {
   contact_id?: string;
   contact_ids?: string[];
-  recipients?: InviteRecipientInput[];
+  recipients?: LoanRecipientInput[];
   title: string;
   message?: string;
   due_at?: string;
-  request_items: Array<{ title: string; description?: string; kind: string; required: boolean; section_name?: string }>;
+  loan_amount_in_cents?: number;
+  loan_type?: string;
+  request_items: RequestItemInput[];
 }) {
-  return apiFetch<Invite>('/api/v1/invites', { method: 'POST', body: JSON.stringify(payload) });
+  return apiFetch<Loan>('/api/v1/loans', { method: 'POST', body: JSON.stringify(payload) });
 }
 
-export function bulkCreateInvites(payload: {
+export function bulkCreateLoans(payload: {
   contact_ids?: string[];
-  recipients?: InviteRecipientInput[];
+  recipients?: LoanRecipientInput[];
   title: string;
   message?: string;
   due_at?: string;
-  request_items: Array<{ title: string; description?: string; kind: string; required: boolean; section_name?: string }>;
+  loan_amount_in_cents?: number;
+  loan_type?: string;
+  request_items: RequestItemInput[];
 }) {
-  return apiFetch<{ invite: Invite; contact_count: number; message: string }>('/api/v1/invites/bulk_create', { method: 'POST', body: JSON.stringify(payload) });
+  return apiFetch<{ loan: Loan; contact_count: number; message: string }>('/api/v1/loans/bulk_create', { method: 'POST', body: JSON.stringify(payload) });
 }
 
-export function sendInvite(id: string | number) {
-  return apiFetch<{ status: string; invite: Invite }>(`/api/v1/invites/${id}/send_invite`, { method: 'POST' });
+export function sendLoan(id: string | number) {
+  return apiFetch<{ status: string; loan: Loan }>(`/api/v1/loans/${id}/send_loan`, { method: 'POST' });
 }
 
-export function addInviteContacts(id: string | number, payload: { contact_ids?: string[]; recipients?: InviteRecipientInput[] }) {
-  return apiFetch<{ invite: Invite; added_contact_count: number }>(`/api/v1/invites/${id}/add_contacts`, {
+export function addLoanContacts(id: string | number, payload: { contact_ids?: string[]; recipients?: LoanRecipientInput[] }) {
+  return apiFetch<{ loan: Loan; added_contact_count: number }>(`/api/v1/loans/${id}/add_contacts`, {
     method: 'POST',
     body: JSON.stringify(payload)
   });
 }
 
-export function cancelInvite(id: number) {
-  return apiFetch<Invite>(`/api/v1/invites/${id}/cancel`, { method: 'POST' });
+export function cancelLoan(id: number) {
+  return apiFetch<Loan>(`/api/v1/loans/${id}/cancel`, { method: 'POST' });
 }
 
 export function approveFile(id: number) {
@@ -190,8 +195,8 @@ export function getDownloadUrl(id: number) {
   return apiFetch<{ url: string }>(`/api/v1/uploaded_files/${id}/download_url`);
 }
 
-export async function downloadAllFilesZip(inviteId: number) {
-  const { blob, filename } = await apiFetchBlob(`/api/v1/invites/${inviteId}/download_all_files`);
+export async function downloadAllFilesZip(loanId: number) {
+  const { blob, filename } = await apiFetchBlob(`/api/v1/loans/${loanId}/download_all_files`);
   const url = window.URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;

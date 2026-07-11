@@ -1,5 +1,5 @@
 import { apiFetch, uploadToPresignedUrl } from './client';
-import { Contact, Invite, UploadedFile } from '../types';
+import { Contact, Loan, UploadedFile } from '../types';
 
 export function requestMagicLink(email: string) {
   return apiFetch<{ magic_token: string }>('/api/v1/client/magic-link', {
@@ -17,8 +17,8 @@ export function createClientSession(magic_token: string) {
   });
 }
 
-export function getClientInvite(publicToken: string) {
-  return apiFetch<Invite>(`/api/v1/client/invites/${publicToken}`, { auth: 'client' });
+export function getClientLoan(publicToken: string) {
+  return apiFetch<Loan>(`/api/v1/client/loans/${publicToken}`, { auth: 'client' });
 }
 
 export async function uploadRequestItem(requestItemId: number, file: File) {

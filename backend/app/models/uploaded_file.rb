@@ -13,6 +13,6 @@ class UploadedFile < ApplicationRecord
 
   def mark_request_item_submitted
     request_item.submitted! if request_item.pending? || request_item.rejected?
-    request_item.invite.refresh_status!
+    request_item.loan.refresh_status!
   end
 end

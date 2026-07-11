@@ -11,10 +11,10 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { ManageUsers } from './pages/ManageUsers';
 import { ManageCompanies } from './pages/ManageCompanies';
 import { SwitchCompany } from './pages/SwitchCompany';
-import { NewInvite } from './pages/NewInvite';
-import { InviteDetail } from './pages/InviteDetail';
+import { NewLoan } from './pages/NewLoan';
+import { LoanDetail } from './pages/LoanDetail';
 import { ClientPortal } from './pages/ClientPortal';
-import { ClientInvite } from './pages/ClientInvite';
+import { ClientLoan } from './pages/ClientLoan';
 import { OAuthCallback } from './pages/OAuthCallback';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -28,15 +28,15 @@ export function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/client" element={<ClientPortal />} />
-        <Route path="/client/invites/:publicToken" element={<ClientInvite />} />
+        <Route path="/client/loans/:publicToken" element={<ClientLoan />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/company" element={<Company />} />
             <Route path="/switch-company" element={<SwitchCompany />} />
-            <Route path="/invites/new" element={<NewInvite />} />
-            <Route path="/invites/:id" element={<InviteDetail />} />
+            <Route path="/loans/new" element={<NewLoan />} />
+            <Route path="/loans/:id" element={<LoanDetail />} />
             <Route element={<AdminOnlyRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<ManageUsers />} />
