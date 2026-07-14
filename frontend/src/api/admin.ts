@@ -141,6 +141,22 @@ export function getLoan(id: string | number) {
   return apiFetch<Loan>(`/api/v1/loans/${id}`);
 }
 
+export function updateLoan(id: string | number, payload: {
+  contact_ids?: string[];
+  recipients?: LoanRecipientInput[];
+  title: string;
+  message?: string;
+  due_at?: string | null;
+  loan_amount_in_cents?: number | null;
+  loan_type?: string | null;
+  request_items?: Array<RequestItemInput & { id?: string | number }>;
+}) {
+  return apiFetch<Loan>(`/api/v1/loans/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
+  });
+}
+
 export function createLoan(payload: {
   contact_id?: string;
   contact_ids?: string[];

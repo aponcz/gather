@@ -13,6 +13,7 @@ import { ManageCompanies } from './pages/ManageCompanies';
 import { SwitchCompany } from './pages/SwitchCompany';
 import { NewLoan } from './pages/NewLoan';
 import { LoanDetail } from './pages/LoanDetail';
+import { EditLoan } from './pages/EditLoan';
 import { ClientPortal } from './pages/ClientPortal';
 import { ClientLoan } from './pages/ClientLoan';
 import { OAuthCallback } from './pages/OAuthCallback';
@@ -36,6 +37,7 @@ export function App() {
             <Route path="/company" element={<Company />} />
             <Route path="/switch-company" element={<SwitchCompany />} />
             <Route path="/loans/new" element={<NewLoan />} />
+            <Route path="/loans/:id/edit" element={<EditLoan />} />
             <Route path="/loans/:id" element={<LoanDetail />} />
             <Route element={<AdminOnlyRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />

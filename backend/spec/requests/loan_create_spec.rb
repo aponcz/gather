@@ -19,6 +19,8 @@ RSpec.describe 'Loan create', type: :request do
 
   describe 'POST /api/v1/loans' do
     it 'creates an loan using direct recipients without global contacts' do
+      allow(SendLoanInviteJob).to receive(:perform_later)
+
       first_email = "borrower1-#{SecureRandom.hex(4)}@acme.test"
       second_email = "borrower2-#{SecureRandom.hex(4)}@acme.test"
 
@@ -53,6 +55,8 @@ RSpec.describe 'Loan create', type: :request do
       expect(loan.request_items.count).to eq(1)
       expect(loan.loan_amount_in_cents).to eq(25_000_050)
       expect(loan.loan_type).to eq('SBA 7(a)')
+      expect(loan.status).to eq('draft')
+      expect(SendLoanInviteJob).not_to have_received(:perform_later)
     end
 
     it 'returns validation error when no recipients are provided' do
