@@ -127,7 +127,11 @@ export function LoanDetail() {
           <p className="muted">No recipients</p>
         )}
       </div>
-      <div className="actions"><StatusBadge status={loan.status} /><button className="primary" onClick={send}>Send loan</button></div>
+      <div className="actions">
+        <StatusBadge status={loan.status} />
+        <Link className="secondary" to={`/loans/${loan.id}/edit`}>Edit loan</Link>
+        <button className="primary" onClick={send}>Send loan</button>
+      </div>
     </div>
     <div className="card">
       <h2>Loan details</h2>

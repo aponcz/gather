@@ -40,6 +40,8 @@ h2 { margin: 0 0 14px; font-size: 20px; }
 .company-tab { border: 0; background: transparent; color: #69778d; font-weight: 700; padding: 10px 14px; border-bottom: 2px solid transparent; }
 .company-tab-active { color: #2858d8; border-bottom-color: #2858d8; }
 .error { background: #fff1f0; color: #a8071a; border: 1px solid #ffccc7; padding: 11px 13px; border-radius: 10px; }
+.field-error { color: #a8071a; font-size: 14px; font-weight: 650; }
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] { border-color: #d4380d; box-shadow: 0 0 0 2px rgba(212, 56, 13, .12); }
 .stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
 .stats-grid .card { display: grid; gap: 8px; }
 .stats-grid strong { font-size: 34px; }

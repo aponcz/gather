@@ -80,9 +80,31 @@ module Api
       end
 
       def update
-        loan.update!(loan_params)
+        update_recipients = params.key?(:contact_ids) || params.key?(:recipients)
+        if update_recipients
+          recipients, missing_contact_ids = recipients_from_params
+          if missing_contact_ids.any?
+            return render json: { error: "contacts_not_found", contact_ids: missing_contact_ids }, status: :unprocessable_entity
+          end
+          if recipients.empty?
+            return render json: { error: "recipients_required" }, status: :unprocessable_entity
+          end
+        end
+
+        Loan.transaction do
+          loan.update!(loan_params)
+
+          if update_recipients
+            loan.loan_contacts.destroy_all
+            create_loan_recipients!(loan, recipients)
+            loan.update!(contact: recipients.first[:contact])
+          end
+
+          update_request_items! if params.key?(:request_items)
+        end
+
         AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "loan.updated")
-        render json: loan
+        render json: loan_payload(loan.reload)
       end
 
       def add_contacts
@@ -190,6 +212,23 @@ module Api
         Array(params[:request_items]).each do |item|
           loan.request_items.create!(item.permit(:title, :description, :kind, :due_at, :required, :section_name))
         end
+      end
+
+      def update_request_items!
+        retained_ids = []
+
+        Array(params[:request_items]).each do |item|
+          attributes = item.permit(:title, :description, :kind, :due_at, :required, :section_name)
+          if item[:id].present?
+            request_item = loan.request_items.find(item[:id])
+            request_item.update!(attributes)
+            retained_ids << request_item.id
+          else
+            retained_ids << loan.request_items.create!(attributes).id
+          end
+        end
+
+        loan.request_items.where.not(id: retained_ids).destroy_all
       end
 
       def recipients_from_params
