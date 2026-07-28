@@ -43,6 +43,7 @@ Rails.application.routes.draw do
           post :send_loan
           post :cancel
           get :download_all_files
+          get :fetch_required_documents
         end
         resources :request_items, only: %i[create update destroy]
       end
