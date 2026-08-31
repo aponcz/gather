@@ -78,6 +78,11 @@ class ProtextLoansImportService
     end
 
     parsed = JSON.parse(response.body)
+
+    if parsed.key?("refresh_token")
+      user.goprotext_refresh_token = parsed.fetch("refresh_token")
+      user.save!
+    end
     parsed.fetch("access_token")
   rescue KeyError, JSON::ParserError => e
     raise Error, "token_response_invalid: #{e.message}"

@@ -141,6 +141,12 @@ export function getLoan(id: string | number) {
   return apiFetch<Loan>(`/api/v1/loans/${id}`);
 }
 
+export function fetchRequiredDocuments(id: string | number) {
+  return apiFetch<{ loan: Loan; fetched_count: number; created_count: number; skipped_count: number }>(
+    `/api/v1/loans/${id}/fetch_required_documents`
+  );
+}
+
 export function updateLoan(id: string | number, payload: {
   contact_ids?: string[];
   recipients?: LoanRecipientInput[];

@@ -79,6 +79,26 @@ module Api
         render json: { error: "protext_sync_failed", details: e.message }, status: :bad_gateway
       end
 
+      def fetch_required_documents
+        result = ProtextDocumentRequirementsService.new(
+          loan: loan,
+          company: current_company,
+          user: current_user
+        ).call
+        # AuditLogger.log!(
+        #   company: current_company,
+        #   loan: loan,
+        #   user: current_user,
+        #   action: "loan.required_documents_fetched",
+        #   metadata: result
+        # )
+        render json: result.merge(loan: loan_payload(loan.reload, include_audit_events: true))
+      rescue ProtextDocumentRequirementsService::Error => e
+        status = e.message == "loan_not_linked_to_protext" ? :unprocessable_entity : :bad_gateway
+        Rails.logger.error("ProText document requirements fetch failed: #{e.message}")
+        render json: { error: "protext_document_requirements_fetch_failed", details: e.message }, status: status
+      end
+
       def update
         update_recipients = params.key?(:contact_ids) || params.key?(:recipients)
         if update_recipients

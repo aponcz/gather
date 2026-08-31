@@ -52,6 +52,32 @@ function sectionsFromLoan(loan: Loan): DraftSection[] {
   return result.length > 0 ? result : [{ name: 'Requested documents', items: [{ title: '', description: '', kind: 'document', required: true }] }];
 }
 
+function mergeFetchedItems(currentSections: DraftSection[], loan: Loan) {
+  const existingIds = new Set(currentSections.flatMap((section) => section.items.map((item) => item.id).filter(Boolean).map(String)));
+  const nextSections = currentSections.map((section) => ({ ...section, items: [...section.items] }));
+
+  (loan.request_items || []).forEach((item) => {
+    if (existingIds.has(String(item.id))) return;
+
+    const sectionName = item.section_name?.trim() || 'Requested items';
+    const draftItem: DraftItem = {
+      id: item.id,
+      title: item.title,
+      description: item.description || '',
+      kind: item.kind,
+      required: item.required
+    };
+    const matchingSection = nextSections.find((section) => section.name === sectionName);
+    if (matchingSection) {
+      matchingSection.items.push(draftItem);
+    } else {
+      nextSections.push({ name: sectionName, items: [draftItem] });
+    }
+  });
+
+  return nextSections;
+}
+
 export function EditLoan() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -60,6 +86,8 @@ export function EditLoan() {
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [sections, setSections] = useState<DraftSection[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [fetchingRequiredDocuments, setFetchingRequiredDocuments] = useState(false);
+  const [fetchRequiredDocumentsMessage, setFetchRequiredDocumentsMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
@@ -119,6 +147,27 @@ export function EditLoan() {
       ...section,
       items: [...section.items, { title: '', description: '', kind: 'document', required: true }]
     } : section));
+  }
+
+  async function fetchRequiredDocuments() {
+    if (!id) return;
+
+    setError(null);
+    setFetchRequiredDocumentsMessage(null);
+    setFetchingRequiredDocuments(true);
+    try {
+      const result = await adminApi.fetchRequiredDocuments(id);
+      setSections((current) => mergeFetchedItems(current, result.loan));
+      setFetchRequiredDocumentsMessage(
+        result.created_count > 0
+          ? `Added ${result.created_count} required document${result.created_count === 1 ? '' : 's'} from ProText.`
+          : 'All ProText required documents are already listed.'
+      );
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Could not fetch required documents');
+    } finally {
+      setFetchingRequiredDocuments(false);
+    }
   }
 
   async function submit(event: FormEvent) {
@@ -211,6 +260,12 @@ export function EditLoan() {
       <label>Due date<input type="datetime-local" value={form.due_at} onChange={(event) => updateForm({ due_at: event.target.value })} /></label>
 
       <h2>Requested items</h2>
+      <div className="actions">
+        <button type="button" className="primary" onClick={fetchRequiredDocuments} disabled={fetchingRequiredDocuments}>
+          {fetchingRequiredDocuments ? 'Fetching Required Documents…' : 'Fetch Required Documents'}
+        </button>
+      </div>
+      {fetchRequiredDocumentsMessage && <p>{fetchRequiredDocumentsMessage}</p>}
       {sections.map((section, sectionIndex) => <div className="item-card" key={sectionIndex}>
         <label>Section name<input value={section.name} onChange={(event) => updateSectionName(sectionIndex, event.target.value)} /></label>
         {section.items.map((item, itemIndex) => <div className="request-row" key={item.id || `${sectionIndex}-${itemIndex}`}>
