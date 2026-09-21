@@ -1,6 +1,10 @@
 name: Deploy frontend to stage
 
 on:
+  push:
+    branches:
+      - master
+      - feature/frontend-github-actions
   workflow_dispatch:
 
 permissions:
@@ -40,7 +44,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::303684789941:role/goprotextnonprod-github-oidc-role
+          role-to-assume: arn:aws:iam::195698602349:role/gather-stage-github-oidc-role
           aws-region: us-east-1
 
       - name: Deploy to stage S3 bucket
