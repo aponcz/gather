@@ -4,7 +4,6 @@ on:
   # push:
   #   branches:
   #     - master
-  #     - feature/frontend-github-actions
   workflow_dispatch:
 
 permissions:
