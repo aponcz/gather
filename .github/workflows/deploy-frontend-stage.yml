@@ -1,10 +1,10 @@
 name: Deploy frontend to stage
 
 on:
-  push:
-    branches:
-      - master
-      - feature/frontend-github-actions
+  # push:
+  #   branches:
+  #     - master
+  #     - feature/frontend-github-actions
   workflow_dispatch:
 
 permissions:

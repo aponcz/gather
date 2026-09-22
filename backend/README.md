@@ -44,6 +44,53 @@ Demo login after seeding:
 admin@example.com / password123
 ```
 
+## Stage deployment
+
+The `Deploy backend to stage` GitHub Actions workflow runs on pushes to `master`
+that change `backend/**` or the workflow itself, and can also be run manually.
+It builds `backend/Dockerfile`, pushes a uniquely tagged image to
+`195698602349.dkr.ecr.us-east-1.amazonaws.com/stage/gather-backend`, and deploys
+the image by digest to the existing service in
+`arn:aws:ecs:us-east-1:195698602349:cluster/stage-ecs-cluster`.
+
+Configure these GitHub **stage environment variables** before running it:
+
+| Variable | Value |
+| --- | --- |
+| `BACKEND_ECS_SERVICE` | Optional override; defaults to `stage-gather-web` |
+| `BACKEND_ECS_CONTAINER` | Required: backend container name in that service's task definition |
+
+The ECR repository, ECS service, and initial task definition must already exist.
+The service must use the ECS rolling deployment controller. The workflow reads
+the service's current task definition, preserves its configuration, detects its
+CPU architecture, and replaces the selected container's image. Other containers
+and separate worker services are not updated. Deployments run serially and wait
+for ECS service stability.
+
+AWS authentication uses GitHub OIDC with
+`arn:aws:iam::195698602349:role/gather-stage-github-oidc-role`; no long-lived AWS
+keys are needed. Its trust policy must allow this repository's `stage`
+environment (`repo:OWNER/REPOSITORY:environment:stage`, audience
+`sts.amazonaws.com`). The role needs:
+
+- `ecr:GetAuthorizationToken` on `*`.
+- `ecr:BatchCheckLayerAvailability`, `ecr:InitiateLayerUpload`,
+  `ecr:UploadLayerPart`, `ecr:CompleteLayerUpload`, and `ecr:PutImage` on
+  `arn:aws:ecr:us-east-1:195698602349:repository/stage/gather-backend`.
+- `ecs:DescribeServices` and `ecs:UpdateService` for the backend service.
+- `ecs:DescribeTaskDefinition` and `ecs:RegisterTaskDefinition` on `*`.
+- `iam:PassRole` for the task and execution roles referenced by the task definition.
+
+Keep runtime configuration and secrets in the ECS task definition and its secret
+references, including `RAILS_ENV=production`, database/Redis connections, and Rails
+secrets. The Dockerfile runs `rails db:prepare` before starting Puma, so the task
+needs database connectivity and migration permissions. Use migrations compatible
+with the previous version while ECS performs a rolling update.
+
+The workflow follows the AWS
+[ECS deployment action](https://github.com/aws-actions/amazon-ecs-deploy-task-definition)
+and [ECR login action](https://github.com/aws-actions/amazon-ecr-login) guidance.
+
 ## Main endpoints
 
 ### Admin
