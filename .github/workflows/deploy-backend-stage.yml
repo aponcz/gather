@@ -18,6 +18,9 @@ concurrency:
 jobs:
   deploy-ecs:
     runs-on: ubuntu-latest
+    env:
+      ECS_CLUSTER: stage-ecs-cluster
+      ECS_SERVICE: stage-gather-web
     permissions:
       id-token: write
       contents: read
@@ -73,23 +76,16 @@ jobs:
           provenance: false
 
       - name: Generate Task Definition JSON
-        run: .aws/generate_task_definition
+        working-directory: backend
+        run: ruby .aws/generate_task_definition
         env:
-          AWS_ACCOUNT_ID: 195698602349
-          AWS_ENV: "stage"
-          TAG: "${{ github.sha }}"
-
-      - name: Update Task Definition with New Image
-        id: render-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: .aws/taskdefinition.json
-          container-name: gather-backend
-          image: 195698602349.dkr.ecr.us-east-1.amazonaws.com/stage/gather-backend:${{ github.sha }}
+          AWS_ACCOUNT_ID: '195698602349'
+          AWS_ENV: stage
+          TAG: ${{ github.sha }}
 
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: stage-gather-backend-web
-          cluster: stage-ecs-cluster
+          task-definition: ./backend/.aws/taskdefinition.json
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
