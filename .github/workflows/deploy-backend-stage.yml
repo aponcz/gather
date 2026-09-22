@@ -54,7 +54,7 @@ jobs:
       - name: Build & Push (direct to ECR, with cache)
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./backend
           file: ./backend/Dockerfile.deploy
           platforms: linux/amd64
           push: true
