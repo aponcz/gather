@@ -23,8 +23,7 @@ COPY Gemfile Gemfile.lock ./
 #     bundle config set path 'vendor/bundle' && \
 #     bundle install --jobs=4 --retry=3
 
-RUN bundle config set force_ruby_platform true && \
-    bundle config set deployment true && \
+RUN bundle config set deployment true && \
     bundle config set without 'test development' && \
     bundle config set path 'vendor/bundle' && \
     bundle install --jobs=4 --retry=3
