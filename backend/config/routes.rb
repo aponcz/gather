@@ -15,7 +15,7 @@ Rails.application.routes.draw do
     delete "api/v1/auth/sign_out", to: "api/v1/devise/sessions#destroy"
   end
 
-  get "/health", to: "health#show"
+  get "/health-check", to: "health#show"
 
   namespace :api do
     namespace :v1 do

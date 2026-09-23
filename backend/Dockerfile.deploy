@@ -1,0 +1,57 @@
+FROM ruby:3.3-slim
+
+RUN apt-get update -qq && \
+    apt-get install -y \
+      build-essential \
+            curl \
+            git \
+      pkg-config \
+      libpq-dev \
+      libyaml-dev \
+      nodejs \
+            postgresql-client && \
+        rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+# COPY Gemfile* ./
+COPY Gemfile Gemfile.lock ./
+
+# RUN --mount=type=cache,target=/var/task/vendor/.bundle-cache \
+#     bundle config set force_ruby_platform true && \
+#     bundle config set deployment true && \
+#     bundle config set without 'test development' && \
+#     bundle config set path 'vendor/bundle' && \
+#     bundle install --jobs=4 --retry=3
+
+RUN bundle config set deployment true && \
+    bundle config set without 'test development' && \
+    bundle config set path 'vendor/bundle' && \
+    bundle install --jobs=4 --retry=3
+
+
+
+COPY . .
+
+# ARG ASSET_BUCKET
+# ARG ASSET_HOST
+ENV RAILS_ENV=production
+ENV PORT=5000
+
+
+
+# RUN --mount=type=secret,id=aws_access_key_id \
+#     --mount=type=secret,id=aws_secret_access_key \
+#     --mount=type=secret,id=aws_session_token \
+#     /bin/sh -lc '\
+#       export AWS_ACCESS_KEY_ID="$(cat /run/secrets/aws_access_key_id)"; \
+#       export AWS_SECRET_ACCESS_KEY="$(cat /run/secrets/aws_secret_access_key)"; \
+#       export AWS_SESSION_TOKEN="$(cat /run/secrets/aws_session_token)"; \
+#       # ASSET_HOST="$ASSET_HOST" \
+#       # ASSET_BUCKET="$ASSET_BUCKET" \
+#       SECRET_KEY_BASE=dummy \
+#       bundle exec rake assets:precompile \
+#     '
+
+
+EXPOSE 5000
+CMD ["bash", "-lc", "bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"]

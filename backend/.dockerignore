@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+.bundle
+log/*
+tmp/*
+coverage
+node_modules
+vendor/bundle
+config/master.key
+config/credentials/*.key
+docker-compose*.yml
+docker-compose*.yaml

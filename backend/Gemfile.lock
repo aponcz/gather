@@ -302,6 +302,7 @@ GEM
 
 PLATFORMS
   aarch64-linux-gnu
+  x86_64-linux
 
 DEPENDENCIES
   aws-sdk-s3 (~> 1.146)
