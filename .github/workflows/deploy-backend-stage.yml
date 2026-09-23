@@ -1,9 +1,10 @@
 name: Deploy backend to stage
 
 on:
-  # push:
-  #   branches:
-  #     - master
+  push:
+    branches:
+      - master
+      - feature/ap/backend-frontend-integration
   workflow_dispatch:
 
 permissions:
@@ -66,6 +67,7 @@ jobs:
           build-args: |
             ASSET_BUCKET=gather-stage-assets
             ASSET_HOST=https://gather-stage-assets.s3.amazonaws.com
+            CLIENT_APP_URL=https://app.gather.stage.goprotext.com
           secrets: |
             "aws_access_key_id=${{ steps.aws_creds.outputs.aws-access-key-id }}"
             "aws_secret_access_key=${{ steps.aws_creds.outputs.aws-secret-access-key }}"
