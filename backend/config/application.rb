@@ -14,6 +14,11 @@ module GatherBackendRails
     config.time_zone = "UTC"
     config.middleware.insert_before 0, Rack::Cors do
       allow do
+        origins { |origin, _env| FrontendOrigin.allowed?(origin) }
+        resource "/api/v1/auth/browser-session", headers: :any,
+          methods: %i[get post delete options], credentials: true
+      end
+      allow do
         origins ENV.fetch("CORS_ORIGINS", "*").split(",")
         resource "*", headers: :any, methods: %i[get post put patch delete options head]
       end

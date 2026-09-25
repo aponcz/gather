@@ -1,10 +1,10 @@
 name: Deploy frontend to stage
 
 on:
-  # push:
-  #   branches:
-  #     - master
-  #     - feature/ap/backend-frontend-integration
+  push:
+    branches:
+      - master
+      - feature/ap/backend-frontend-integration
   workflow_dispatch:
 
 permissions:
@@ -41,6 +41,7 @@ jobs:
       - name: Build frontend
         env:
           VITE_API_BASE_URL: https://backend.gather.stage.goprotext.com
+          VITE_COMPANY_BASE_DOMAIN: gather.stage.goprotext.com
         run: npm run build
 
       - name: Configure AWS credentials

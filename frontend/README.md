@@ -38,6 +38,20 @@ http://localhost:5173
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
+For stage builds, set `VITE_COMPANY_BASE_DOMAIN=gather.stage.goprotext.com`.
+Switching to a company with subdomain `acme` opens
+`https://acme.gather.stage.goprotext.com/`. Local development uses
+`http://acme.localhost:5173/`. Companies without a subdomain stay on the current
+origin. The switch uses the company's subdomain; custom domains are not used by
+this flow.
+
+Deploy the backend (including the `company_sign_in_codes` migration) before the
+frontend. Sign-in is transferred using a single-use code that expires after one
+minute; the destination exchanges it for a company-scoped session. Stage DNS,
+TLS, and frontend hosting must serve `*.gather.stage.goprotext.com`, and backend
+CORS must allow the company origins. Configure frontend hosting to serve the
+same frontend build on each company hostname.
+
 ## Typical local workflow
 
 1. Start the Rails backend and dependencies.

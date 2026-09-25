@@ -10,7 +10,8 @@ module Api
       OAUTH_STATE_TTL = 10.minutes
       OAUTH_STATE_CACHE_PREFIX = "oauth:goprotext:state"
 
-      before_action :authenticate_user!, only: %i[me switch_company]
+      before_action :require_frontend_origin!, only: %i[create_browser_session restore_browser_session destroy_browser_session]
+      before_action :authenticate_user!, only: %i[me switch_company create_browser_session]
 
       def register
         company = Company.create!(company_registration_params)
@@ -114,11 +115,61 @@ module Api
         }
       end
 
+      def create_browser_session
+        company = browser_company(current_user, current_company.id)
+        return render(json: { error: "company_access_denied" }, status: :forbidden) unless company
+
+        response.set_cookie(browser_cookie_name, {
+          value: JwtService.encode({ sub: current_user.id, company_id: company.id, type: "browser_session" }),
+          httponly: true, secure: Rails.env.production? || request.ssl?, same_site: :lax,
+          path: "/", expires: 12.hours.from_now
+        })
+        render_auth_payload(current_user, company)
+      end
+
+      def restore_browser_session
+        token = request.cookies[browser_cookie_name]
+        return render(json: { error: "missing_browser_session" }, status: :unauthorized) if token.blank?
+
+        payload = JwtService.decode(token)
+        raise JWT::DecodeError unless payload["type"] == "browser_session"
+
+        user = User.find(payload.fetch("sub"))
+        company = browser_company(user, payload["company_id"])
+        return render(json: { error: "company_access_denied" }, status: :forbidden) unless company
+
+        render_auth_payload(user, company)
+      rescue JWT::DecodeError, ActiveRecord::RecordNotFound, KeyError
+        render json: { error: "invalid_browser_session" }, status: :unauthorized
+      end
+
+      def destroy_browser_session
+        response.delete_cookie(browser_cookie_name, path: "/", secure: Rails.env.production? || request.ssl?, httponly: true, same_site: :lax)
+        head :no_content
+      end
+
       def switch_company
         company = current_user.companies.find_by(id: params.require(:company_id))
         return render(json: { error: "forbidden" }, status: :forbidden) if company.blank?
 
-        render_auth_payload(current_user, company)
+        if params[:handoff] == true
+          response.headers["Cache-Control"] = "no-store"
+          render json: { code: CompanySignInCode.issue(user: current_user, company: company) }
+        else
+          render_auth_payload(current_user, company)
+        end
+      end
+
+      def complete_company_switch
+        response.headers["Cache-Control"] = "no-store"
+        handoff = CompanySignInCode.consume(params.require(:code).to_s)
+        return render(json: { error: "invalid_switch_code" }, status: :unauthorized) unless handoff
+
+        user = handoff.user
+        company = user.companies.find_by(id: handoff.company_id)
+        return render(json: { error: "forbidden" }, status: :forbidden) unless company
+
+        render_auth_payload(user, company)
       end
 
       def forgot_password
@@ -150,6 +201,26 @@ module Api
       end
 
       private
+
+      def require_frontend_origin!
+        response.headers["Cache-Control"] = "no-store"
+        return if FrontendOrigin.allowed?(request.headers["Origin"])
+
+        render json: { error: "untrusted_frontend_origin" }, status: :forbidden
+      end
+
+      def browser_cookie_name
+        Rails.env.production? ? "__Host-gather_browser_session" : "gather_browser_session"
+      end
+
+      def browser_company(user, fallback_company_id)
+        subdomain = FrontendOrigin.company_subdomain(request.headers["Origin"])
+        if subdomain
+          user.companies.find_by(subdomain: subdomain)
+        else
+          user.companies.find_by(id: fallback_company_id)
+        end
+      end
 
       def goprotext_authorize_url
         ENV.fetch("GOPROTEXT_OAUTH_AUTHORIZE_URL", "https://id.goprotext.com/oauth/authorize")
@@ -295,7 +366,7 @@ module Api
       end
 
       def companies_payload(user)
-        user.companies.order(:name).select(:id, :name)
+        user.companies.order(:name).select(:id, :name, :subdomain, :custom_domain)
       end
 
       def resolve_login_company!(user)

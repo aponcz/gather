@@ -58,10 +58,43 @@ export function me() {
   return apiFetch<{ user: User; company: Company; companies: Company[] }>('/api/v1/me');
 }
 
+export function createBrowserSession() {
+  return apiFetch<AuthResponse>('/api/v1/auth/browser-session', {
+    method: 'POST', credentials: 'include'
+  });
+}
+
+export function restoreBrowserSession() {
+  return apiFetch<AuthResponse>('/api/v1/auth/browser-session', {
+    method: 'GET', auth: false, credentials: 'include'
+  });
+}
+
+export function destroyBrowserSession() {
+  return apiFetch<void>('/api/v1/auth/browser-session', {
+    method: 'DELETE', auth: false, credentials: 'include'
+  });
+}
+
 export function switchCompany(companyId: string) {
   return apiFetch<AuthResponse>('/api/v1/auth/switch-company', {
     method: 'POST',
     body: JSON.stringify({ company_id: companyId })
+  });
+}
+
+export function createCompanySwitchCode(companyId: string) {
+  return apiFetch<{ code: string }>('/api/v1/auth/switch-company', {
+    method: 'POST',
+    body: JSON.stringify({ company_id: companyId, handoff: true })
+  });
+}
+
+export function completeCompanySwitch(code: string) {
+  return apiFetch<AuthResponse>('/api/v1/auth/complete-company-switch', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify({ code })
   });
 }
 

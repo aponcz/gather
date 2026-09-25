@@ -7,13 +7,29 @@ export function Layout() {
   const { user, company, companies, switchCompany, signOut } = useAuth();
   const navigate = useNavigate();
   const [switchingCompany, setSwitchingCompany] = useState(false);
+  const [switchError, setSwitchError] = useState<string | null>(null);
   const canAccessAdminDashboard = ['admin', 'god'].includes(user?.role || '');
+  const [signOutError, setSignOutError] = useState<string | null>(null);
+
+  async function handleSignOut() {
+    setSignOutError(null);
+    try {
+      await signOut();
+      navigate('/login');
+    } catch {
+      setSignOutError('Unable to sign out. Please try again.');
+    }
+  }
 
   async function handleCompanyChange(nextCompanyId: string) {
     if (!nextCompanyId || nextCompanyId === company?.id) return;
     setSwitchingCompany(true);
+    setSwitchError(null);
     try {
-      await switchCompany(nextCompanyId);
+      const redirecting = await switchCompany(nextCompanyId);
+      if (!redirecting) navigate('/');
+    } catch (error) {
+      setSwitchError(error instanceof Error ? error.message : 'Failed to switch company');
     } finally {
       setSwitchingCompany(false);
     }
@@ -43,6 +59,7 @@ export function Layout() {
                 Switching company…
               </p>
             )}
+            {switchError && <p role="alert" className="error">{switchError}</p>}
           </div>
         )}
         <nav>
@@ -54,7 +71,8 @@ export function Layout() {
           <NavLink to="/client">Client Portal</NavLink>
           {user && companies.length > 1 && <NavLink to="/switch-company"><Repeat2 size={16} /> Switch Company</NavLink>}
         </nav>
-        {user && <button className="ghost" onClick={() => { signOut(); navigate('/login'); }}><LogOut size={16} /> Sign out</button>}
+        {user && <button className="ghost" onClick={() => void handleSignOut()}><LogOut size={16} /> Sign out</button>}
+        {signOutError && <p role="alert" className="error">{signOutError}</p>}
       </aside>
       <main className="content">
         <Outlet />

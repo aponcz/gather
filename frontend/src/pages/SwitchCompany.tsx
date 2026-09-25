@@ -13,8 +13,8 @@ export function SwitchCompany() {
     setSwitching(true);
     setError(null);
     try {
-      await switchCompany(nextCompanyId);
-      navigate('/');
+      const redirecting = await switchCompany(nextCompanyId);
+      if (!redirecting) navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to switch company');
     } finally {
