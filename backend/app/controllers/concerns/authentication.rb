@@ -11,6 +11,7 @@ module Authentication
     return render(json: { error: "missing_token" }, status: :unauthorized) unless token
 
     payload = JwtService.decode(token)
+    raise JWT::DecodeError if payload["type"] == "browser_session"
     @current_user = User.find(payload.fetch("sub"))
     requested_company_id = payload["company_id"]
     @current_company = if requested_company_id.present?
