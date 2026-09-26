@@ -316,6 +316,7 @@ module Api
           company_name = (oauth_company["name"] || oauth_company[:name]).to_s.strip
           company = Company.find_or_initialize_by(protext_id: protext_id)
           company.name = company_name.presence || "GoProText #{protext_id}" if company.name.blank?
+          company.subdomain = oauth_company["subdomain"] if oauth_company["subdomain"].present?
           company.save! if company.new_record? || company.changed?
 
           user.company_memberships.find_or_create_by!(company: company) do |membership|
