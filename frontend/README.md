@@ -36,7 +36,17 @@ http://localhost:5173
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000
+VITE_APP_BASE_DOMAIN=gather.example.com
 ```
+
+Company switching navigates to `<company subdomain>.<VITE_APP_BASE_DOMAIN>`
+and completes sign-in on that host. Configure wildcard DNS and frontend hosting
+for this domain, and allow these origins in the API's CORS configuration.
+The current protocol and port are preserved. If omitted, the base domain is
+inferred by removing the first label from hosts with three or more labels;
+`localhost` and `*.localhost` use `localhost`. Set it explicitly for nested
+application domains, multi-part public suffixes, custom domains, or IP hosts.
+Companies without a subdomain continue switching on the current host.
 
 ## Typical local workflow
 
