@@ -296,7 +296,7 @@ module Api
       end
 
       def companies_payload(user)
-        user.companies.order(:name).select(:id, :name)
+        user.companies.order(:name).select(:id, :name, :subdomain)
       end
 
       def resolve_login_company!(user)

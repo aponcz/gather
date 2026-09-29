@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { clearToken, getToken, setToken, adminTokenKey } from '../lib/storage';
 import * as adminApi from '../api/admin';
 import { Company, User } from '../types';
+import { companySwitchUrl } from '../lib/companyNavigation';
 
 type AuthContextValue = {
   user: User | null;
@@ -88,6 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     async switchCompany(companyId) {
       const result = await adminApi.switchCompany(companyId);
+      const redirectUrl = companySwitchUrl(window.location.href, result.company.subdomain, result.token);
+      if (redirectUrl) {
+        window.location.assign(redirectUrl);
+        return;
+      }
       setToken(adminTokenKey, result.token);
       applyAuthState(result);
     },
