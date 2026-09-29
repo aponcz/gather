@@ -10,26 +10,6 @@ type AuthContextValue = {
   companies: Company[];
   loading: boolean;
   completeOAuthSignIn: (token: string) => Promise<void>;
-  signUp: (payload: {
-    company_name: string;
-    name: string;
-    email: string;
-    password: string;
-    phone_number?: string;
-    address_line_1?: string;
-    address_line_2?: string;
-    city?: string;
-    state?: string;
-    zip_code?: string;
-    website?: string;
-    subdomain?: string;
-    status?: number;
-    logo?: string;
-    trial_started_on?: string;
-    activated_on?: string;
-    delinquent_on?: string;
-    suspended_on?: string;
-  }) => Promise<void>;
   switchCompany: (companyId: string) => Promise<void>;
   signOut: () => void;
 };
@@ -74,11 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async completeOAuthSignIn(token) {
       setToken(adminTokenKey, token);
       const result = await adminApi.me();
-      applyAuthState(result);
-    },
-    async signUp(payload) {
-      const result = await adminApi.register(payload);
-      setToken(adminTokenKey, result.token);
       applyAuthState(result);
     },
     async switchCompany(companyId) {

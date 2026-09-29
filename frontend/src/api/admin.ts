@@ -18,34 +18,6 @@ export function getProTextAuthorizationUrl() {
   });
 }
 
-export function register(payload: {
-  company_name: string;
-  name: string;
-  email: string;
-  password: string;
-  phone_number?: string;
-  address_line_1?: string;
-  address_line_2?: string;
-  city?: string;
-  state?: string;
-  zip_code?: string;
-  website?: string;
-  subdomain?: string;
-  custom_domain?: string;
-  status?: number;
-  logo?: string;
-  trial_started_on?: string;
-  activated_on?: string;
-  delinquent_on?: string;
-  suspended_on?: string;
-}) {
-  return apiFetch<AuthResponse>('/api/v1/auth/register', {
-    method: 'POST',
-    auth: false,
-    body: JSON.stringify(payload)
-  });
-}
-
 export function me() {
   return apiFetch<{ user: User; company: Company; companies: Company[] }>('/api/v1/me');
 }

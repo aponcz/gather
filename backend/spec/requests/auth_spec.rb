@@ -1,33 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Auth', type: :request do
-  describe 'POST /api/v1/auth/register' do
-    it 'registers a company admin and returns token and payload' do
-      company_name = "Acme Lending #{SecureRandom.hex(4)}"
-      email = "register-admin-#{SecureRandom.hex(4)}@acme.test"
-
-      post '/api/v1/auth/register', params: {
-        company_name: company_name,
-        name: 'Admin User',
-        email: email,
-        password: 'password123'
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:created)
-
-      body = json_body
-      expect(body['token']).to be_present
-      expect(body.dig('user', 'email')).to eq(email)
-      expect(body.dig('user', 'role')).to eq('admin')
-      expect(body.dig('company', 'name')).to eq(company_name)
-
-      company = Company.find(body.dig('company', 'id'))
-      user = User.find_by!(email: email)
-      expect(user.company_id).to eq(company.id)
-      expect(user.authenticate('password123')).to be_present
-    end
-  end
-
   describe 'GET /api/v1/auth/oauth/goprotext/start' do
     around do |example|
       original_client_id = ENV['GOPROTEXT_OAUTH_CLIENT_ID']

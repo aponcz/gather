@@ -1,47 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Devise API Auth', type: :request do
-  describe 'POST /api/v1/auth' do
-    let(:registration_email) { "devise-register-#{SecureRandom.hex(4)}@sunrise.test" }
-    let(:registration_company_name) { "Sunrise Financial #{SecureRandom.hex(4)}" }
-    let(:bad_registration_company_name) { "Bad Registration Co #{SecureRandom.hex(4)}" }
-
-    it 'registers a user into a new company' do
-      post '/api/v1/auth', params: {
-        user: {
-          company_name: registration_company_name,
-          name: 'New Admin',
-          email: registration_email,
-          password: 'password123',
-          password_confirmation: 'password123'
-        }
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:created)
-      body = json_body
-      expect(body['token']).to be_present
-      expect(body.dig('user', 'email')).to eq(registration_email)
-      expect(body.dig('company', 'name')).to eq(registration_company_name)
-    end
-
-    it 'returns validation errors for invalid registration data' do
-      post '/api/v1/auth', params: {
-        user: {
-          company_name: bad_registration_company_name,
-          name: '',
-          email: 'invalid-email',
-          password: 'short',
-          password_confirmation: 'mismatch'
-        }
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      body = json_body
-      expect(body['error']).to eq('validation_failed')
-      expect(body['details']).to be_present
-    end
-  end
-
   describe 'POST /api/v1/auth/password' do
     let!(:company) { Company.create!(name: "Acme Lending #{SecureRandom.hex(3)}") }
     let(:recover_email) { "recover-user-#{SecureRandom.hex(4)}@acme.test" }
