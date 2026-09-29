@@ -1,10 +1,10 @@
 import { FormEvent, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ApiError } from '../api/client';
 
 export function Login() {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signUp } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [form, setForm] = useState({
@@ -40,8 +40,7 @@ export function Login() {
     event.preventDefault();
     setError(null);
     try {
-      if (mode === 'login') await signIn(form.email, form.password);
-      else await signUp(form);
+      await signUp(form);
       navigate('/');
     } catch (err) {
       if (err instanceof ApiError && err.body && typeof err.body === 'object') {
@@ -75,22 +74,19 @@ export function Login() {
             <label>Custom domain<input placeholder="documents.mycompany.com" value={form.custom_domain} onChange={(e) => setForm({ ...form, custom_domain: e.target.value })} /></label>
           </>
         )}
-        <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
-        <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-        {mode === 'login' && (
-          <div style={{ textAlign: 'right', marginTop: '-10px', marginBottom: '15px' }}>
-            <Link to="/forgot-password" style={{ fontSize: '0.9em', textDecoration: 'none', color: '#0066cc' }}>
-              Forgot password?
-            </Link>
-          </div>
+        {mode === 'register' && (
+          <>
+            <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
+            <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
+          </>
         )}
         {error && <div className="error">{error}</div>}
-        <button className="primary" type="submit">{mode === 'login' ? 'Sign in' : 'Register'}</button>
         {mode === 'login' && (
           <button className="primary" type="button" onClick={() => void signInWithProText()}>
             Sign in with ProText
           </button>
         )}
+        {mode === 'register' && <button className="primary" type="submit">Register</button>}
         <button type="button" className="link-button" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
           {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'}
         </button>

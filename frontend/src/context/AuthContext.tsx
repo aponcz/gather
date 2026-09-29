@@ -10,7 +10,6 @@ type AuthContextValue = {
   companies: Company[];
   loading: boolean;
   completeOAuthSignIn: (token: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
   signUp: (payload: {
     company_name: string;
     name: string;
@@ -75,11 +74,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async completeOAuthSignIn(token) {
       setToken(adminTokenKey, token);
       const result = await adminApi.me();
-      applyAuthState(result);
-    },
-    async signIn(email, password) {
-      const result = await adminApi.login(email, password);
-      setToken(adminTokenKey, result.token);
       applyAuthState(result);
     },
     async signUp(payload) {

@@ -11,14 +11,6 @@ type AuthResponse = {
   companies: Company[];
 };
 
-export function login(email: string, password: string) {
-  return apiFetch<AuthResponse>('/api/v1/auth/login', {
-    method: 'POST',
-    auth: false,
-    body: JSON.stringify({ email, password })
-  });
-}
-
 export function getProTextAuthorizationUrl() {
   return apiFetch<{ authorization_url: string }>('/api/v1/auth/oauth/goprotext/start', {
     method: 'GET',

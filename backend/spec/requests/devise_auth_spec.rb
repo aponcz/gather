@@ -1,69 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Devise API Auth', type: :request do
-  describe 'POST /api/v1/auth/sign_in' do
-    let(:login_email) { "devise-login-#{SecureRandom.hex(4)}@acme.test" }
-    let!(:company) { Company.create!(name: "Acme Lending #{SecureRandom.hex(3)}") }
-    let!(:other_company) { Company.create!(name: "Beacon Capital #{SecureRandom.hex(3)}") }
-    let!(:user) do
-      User.create!(
-        company: company,
-        name: 'Admin User',
-        email: login_email,
-        password: 'password123',
-        role: 'admin'
-      )
-    end
-
-    before do
-      CompanyMembership.create!(company: other_company, user: user, role: 'member')
-    end
-
-    it 'signs in successfully and returns token, user, and companies' do
-      post '/api/v1/auth/sign_in', params: {
-        user: {
-          email: login_email,
-          password: 'password123',
-          company_id: company.id
-        }
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:ok)
-      body = json_body
-      expect(body['token']).to be_present
-      expect(body.dig('user', 'email')).to eq(login_email)
-      expect(body.dig('company', 'id')).to eq(company.id)
-      expect(body['companies'].map { |entry| entry['id'] }).to include(company.id, other_company.id)
-    end
-
-    it 'returns unauthorized for invalid credentials' do
-      post '/api/v1/auth/sign_in', params: {
-        user: {
-          email: login_email,
-          password: 'wrong-password'
-        }
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:unauthorized)
-      expect(json_body).to eq({ 'error' => 'invalid_credentials' })
-    end
-
-    it 'returns not_found when requested company is not in user memberships' do
-      stranger_company = Company.create!(name: "Stranger Company #{SecureRandom.hex(4)}")
-
-      post '/api/v1/auth/sign_in', params: {
-        user: {
-          email: login_email,
-          password: 'password123',
-          company_id: stranger_company.id
-        }
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:not_found)
-      expect(json_body).to eq({ 'error' => 'not_found' })
-    end
-  end
-
   describe 'POST /api/v1/auth' do
     let(:registration_email) { "devise-register-#{SecureRandom.hex(4)}@sunrise.test" }
     let(:registration_company_name) { "Sunrise Financial #{SecureRandom.hex(4)}" }

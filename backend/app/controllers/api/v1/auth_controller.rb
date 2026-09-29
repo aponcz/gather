@@ -25,17 +25,6 @@ module Api
         render_auth_payload(user, company, status: :created)
       end
 
-      def login
-        user = authenticate_by_email(params.require(:email), params.require(:password))
-        return render(json: { error: "invalid_credentials" }, status: :unauthorized) if user.blank?
-
-        company = resolve_login_company!(user)
-
-        user.update_column(:last_login_at, Time.current)
-
-        render_auth_payload(user, company)
-      end
-
       def oauth_goprotext_start
         state = SecureRandom.urlsafe_base64(32)
         cache_oauth_state(state)
@@ -318,11 +307,6 @@ module Api
         company.company_memberships.find_or_create_by!(user: user) do |membership|
           membership.role = role
         end
-      end
-
-      def authenticate_by_email(email, password)
-        normalized_email = email.to_s.downcase
-        User.where("LOWER(email) = ?", normalized_email).find { |candidate| candidate.authenticate(password) }
       end
 
       def company_registration_params

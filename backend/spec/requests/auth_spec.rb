@@ -28,46 +28,6 @@ RSpec.describe 'Auth', type: :request do
     end
   end
 
-  describe 'POST /api/v1/auth/login' do
-    let(:login_email) { "login-admin-#{SecureRandom.hex(4)}@acme.test" }
-    let!(:company) { Company.create!(name: "Acme Lending #{SecureRandom.hex(4)}") }
-    let!(:user) do
-      User.create!(
-        company: company,
-        name: 'Admin User',
-        email: login_email,
-        password: 'password123',
-        role: 'admin'
-      )
-    end
-
-    it 'returns a token and user payload for valid credentials' do
-      post '/api/v1/auth/login', params: {
-        email: login_email,
-        password: 'password123'
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:ok)
-
-      body = json_body
-      expect(body['token']).to be_present
-      expect(body.dig('user', 'email')).to eq(login_email)
-      expect(body.dig('company', 'id')).to eq(company.id)
-
-      expect(user.reload.last_login_at).to be_present
-    end
-
-    it 'returns unauthorized for invalid password' do
-      post '/api/v1/auth/login', params: {
-        email: login_email,
-        password: 'wrong-password'
-      }.to_json, headers: json_headers
-
-      expect(response).to have_http_status(:unauthorized)
-      expect(json_body).to eq({ 'error' => 'invalid_credentials' })
-    end
-  end
-
   describe 'GET /api/v1/auth/oauth/goprotext/start' do
     around do |example|
       original_client_id = ENV['GOPROTEXT_OAUTH_CLIENT_ID']
