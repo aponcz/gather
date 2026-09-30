@@ -1,0 +1,11 @@
+Hi<%= " #{@recipient_name}" if @recipient_name.present? %>,
+
+<%= @company.name %> has requested documents for "<%= @loan.title %>".
+<% if @loan.message.present? %>
+
+<%= @loan.message %>
+<% end %>
+
+Please complete your request: <%= @client_url %>
+
+This personal link expires in 7 days. Please don't forward it.

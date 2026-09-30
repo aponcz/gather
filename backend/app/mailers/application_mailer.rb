@@ -1,4 +1,6 @@
 class ApplicationMailer < ActionMailer::Base
+  layout "mailer"
+
   SENDGRID_TRACKING_SETTINGS = {
     filters: {
       clicktrack: {

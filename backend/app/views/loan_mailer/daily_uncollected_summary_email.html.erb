@@ -1,0 +1,17 @@
+<div style="height:6px;background:#7947eb;font-size:0;line-height:0;">&nbsp;</div>
+<div style="padding:48px 48px 42px;">
+  <div style="display:inline-block;padding:7px 11px;border:1px solid #e2d6ff;border-radius:999px;background:#f0eaff;color:#7042df;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Document summary</div>
+  <h1 style="margin:22px 0 16px;color:#17132d;font-size:34px;line-height:1.12;letter-spacing:-1.3px;">You’re almost there.<br><span style="color:#7544ed;">Here’s what remains.</span></h1>
+  <p style="margin:0 0 12px;color:#5f596d;font-size:16px;line-height:1.7;">Hi<%= " #{@recipient_name}" if @recipient_name.present? %>,</p>
+  <p style="margin:0 0 23px;color:#5f596d;font-size:16px;line-height:1.7;">The following items are still outstanding for <strong style="color:#28223f;"><%= @loan.title %></strong>:</p>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #eee9f4;border-radius:14px;background:#fcfbfe;">
+    <% @pending_items.each_with_index do |item, index| %>
+      <tr>
+        <td width="42" valign="top" style="padding:15px 0 15px 16px;<%= 'border-bottom:1px solid #eee9f4;' unless index == @pending_items.length - 1 %>"><span style="display:inline-block;width:24px;height:24px;border-radius:8px;background:#eee7fc;color:#7544ed;font-size:14px;font-weight:800;line-height:24px;text-align:center;">✓</span></td>
+        <td style="padding:16px 16px 16px 9px;color:#302a40;font-size:14px;font-weight:700;<%= 'border-bottom:1px solid #eee9f4;' unless index == @pending_items.length - 1 %>"><%= item.title %></td>
+      </tr>
+    <% end %>
+  </table>
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:30px;"><tr><td style="border-radius:14px;background:#7544ed;"><a clicktracking="off" href="<%= @client_url %>" style="display:inline-block;padding:15px 22px;color:#ffffff;font-size:15px;font-weight:800;text-decoration:none;">Upload remaining documents&nbsp;&nbsp;→</a></td></tr></table>
+  <p style="margin:22px 0 0;color:#918b9e;font-size:12px;line-height:1.6;">This personal link securely signs you in and expires in 7 days. Please don’t forward it.</p>
+</div>

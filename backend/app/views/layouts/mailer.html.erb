@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title><%= message.subject %></title>
+  </head>
+  <body style="margin:0;padding:0;background:#f7f5fb;color:#1d1833;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;"><%= @preheader %></div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f7f5fb;">
+      <tr>
+        <td align="center" style="padding:38px 16px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;">
+            <tr>
+              <td style="padding:0 8px 22px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td width="40" height="40" align="center" style="width:40px;height:40px;border-radius:12px;background:#7947eb;color:#ffffff;font-size:18px;font-weight:800;">✓</td>
+                    <td style="padding-left:11px;color:#17142e;font-size:19px;font-weight:600;letter-spacing:-0.4px;">ProText <strong>Gather</strong></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="overflow:hidden;border:1px solid #e7e1f0;border-radius:24px;background:#ffffff;box-shadow:0 16px 45px rgba(50,33,91,0.08);">
+                <%= yield %>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:24px 28px 0;color:#888294;font-size:12px;line-height:1.6;">
+                This secure document request was sent by <strong style="color:#625c70;"><%= @company&.name || 'your team' %></strong> using ProText Gather.<br>
+                If you were not expecting it, you can safely ignore this email.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

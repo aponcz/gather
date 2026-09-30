@@ -1,8 +1,9 @@
-import { ChangeEvent, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import * as clientApi from '../api/clientPortal';
 import { Loan, RequestItem } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
+import { clientTokenKey, setToken } from '../lib/storage';
 
 function formatCurrencyFromCents(value?: number | null) {
   if (value === null || value === undefined) return null;
@@ -13,12 +14,38 @@ function formatCurrencyFromCents(value?: number | null) {
 
 export function ClientLoan() {
   const { publicToken } = useParams();
+  const location = useLocation();
   const [loan, setLoan] = useState<Loan | null>(null);
   const [uploading, setUploading] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const loadRef = useRef<{ publicToken: string; promise: Promise<Loan> } | null>(null);
 
   async function load() { if (publicToken) setLoan(await clientApi.getClientLoan(publicToken)); }
-  useEffect(() => { load().catch((err) => setError(err.message)); }, [publicToken]);
+  useEffect(() => {
+    if (!publicToken) return;
+
+    if (loadRef.current?.publicToken !== publicToken) {
+      loadRef.current = {
+        publicToken,
+        promise: (async () => {
+          const magicToken = new URLSearchParams(location.search).get('magic_token') ||
+            new URLSearchParams(location.hash.slice(1)).get('magic_token');
+          if (magicToken) {
+            const session = await clientApi.createClientSession(magicToken);
+            setToken(clientTokenKey, session.token);
+            window.history.replaceState(null, '', location.pathname);
+          }
+          return clientApi.getClientLoan(publicToken);
+        })(),
+      };
+    }
+
+    let active = true;
+    loadRef.current.promise
+      .then((result) => { if (active) setLoan(result); })
+      .catch((err) => { if (active) setError(err instanceof Error ? err.message : 'Unable to open this request'); });
+    return () => { active = false; };
+  }, [location.hash, location.pathname, location.search, publicToken]);
 
   async function handleFile(itemId: number, event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];

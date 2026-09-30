@@ -15,9 +15,9 @@ module Api
           payload = JwtService.decode(params.require(:magic_token))
           return render(json: { error: "wrong_token_type" }, status: :unauthorized) unless payload["type"] == "client_magic"
 
-          contact = Contact.find(payload.fetch("contact_id"))
-          session_token = JwtService.encode({ contact_id: contact.id, company_id: contact.company_id, type: "client" }, expires_in: 7.days)
-          render json: { token: session_token, contact: contact }
+          identity, recipient = client_identity_from(payload)
+          session_token = JwtService.encode(identity.merge(type: "client"), expires_in: 7.days)
+          render json: { token: session_token, contact: recipient }
         rescue JWT::DecodeError, ActiveRecord::RecordNotFound, KeyError
           render json: { error: "invalid_magic_token" }, status: :unauthorized
         end
@@ -57,36 +57,67 @@ module Api
 
         private
 
+        def client_identity_from(payload)
+          if payload["contact_id"].present?
+            contact = Contact.find(payload["contact_id"])
+            [{ contact_id: contact.id, company_id: contact.company_id }, contact]
+          elsif payload["loan_contact_id"].present?
+            loan_contact = LoanContact.includes(:loan).find(payload["loan_contact_id"])
+            [
+              { loan_contact_id: loan_contact.id, company_id: loan_contact.loan.company_id },
+              loan_contact.recipient_payload
+            ]
+          else
+            raise KeyError, "client identity missing"
+          end
+        end
+
         def find_accessible_loan(public_token)
+          if @current_loan_contact.present?
+            return @current_loan_contact.loan if @current_loan_contact.loan.public_token == public_token
+
+            raise ActiveRecord::RecordNotFound
+          end
+
           # Support both old single-contact loans and new shared loans
           Loan.where(public_token: public_token)
             .where(
               'contact_id = :contact_id OR id IN (SELECT loan_id FROM loan_contacts WHERE contact_id = :contact_id OR LOWER(email) = :email)',
-              contact_id: @current_contact.id,
-              email: @current_contact.email.to_s.downcase
+              contact_id: @current_client_contact_id,
+              email: @current_client_email
             )
             .first! || raise(ActiveRecord::RecordNotFound)
         end
 
         def find_accessible_loan_by_request_item(request_item_id)
+          if @current_loan_contact.present?
+            return @current_loan_contact.loan.request_items.find(request_item_id).loan
+          end
+
           # Support both old single-contact and new shared loans for request items
           RequestItem.where(id: request_item_id)
             .joins(:loan)
             .where(
               'loans.contact_id = :contact_id OR loans.id IN (SELECT loan_id FROM loan_contacts WHERE contact_id = :contact_id OR LOWER(email) = :email)',
-              contact_id: @current_contact.id,
-              email: @current_contact.email.to_s.downcase
+              contact_id: @current_client_contact_id,
+              email: @current_client_email
             )
             .first!&.loan || raise(ActiveRecord::RecordNotFound)
         end
 
         def uploaded_file
+          if @current_loan_contact.present?
+            return @uploaded_file ||= UploadedFile.joins(:request_item)
+              .where(id: params[:id], request_items: { loan_id: @current_loan_contact.loan_id })
+              .first!
+          end
+
           @uploaded_file ||= UploadedFile.joins(request_item: :loan)
             .where(id: params[:id])
             .where(
               'loans.contact_id = :contact_id OR loans.id IN (SELECT loan_id FROM loan_contacts WHERE contact_id = :contact_id OR LOWER(email) = :email)',
-              contact_id: @current_contact.id,
-              email: @current_contact.email.to_s.downcase
+              contact_id: @current_client_contact_id,
+              email: @current_client_email
             )
             .first! || raise(ActiveRecord::RecordNotFound)
         end
