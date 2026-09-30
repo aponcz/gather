@@ -1,100 +1,112 @@
-import { FormEvent, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { ArrowRight, Check, Clock3, FileCheck2, MessageSquareText, ShieldCheck, Sparkles, UploadCloud, Users, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { ApiError } from '../api/client';
+import { getProTextAuthorizationUrl } from '../api/admin';
+
+const features = [
+  { icon: MessageSquareText, title: 'Request with clarity', copy: 'Send one organized request with every document, deadline, and detail your client needs.' },
+  { icon: UploadCloud, title: 'Collect without chasing', copy: 'Give clients a simple, secure place to upload files from any device—no messy email threads.' },
+  { icon: FileCheck2, title: 'Review in one place', copy: 'See what is missing, approve submissions, and keep every loan moving from a single workspace.' },
+];
 
 export function Login() {
-  const { user, signIn, signUp } = useAuth();
-  const navigate = useNavigate();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [form, setForm] = useState({
-    company_name: 'Acme Lending',
-    name: 'Admin User',
-    email: 'admin@acme.test',
-    password: 'password123',
-    phone_number: '',
-    address_line_1: '',
-    address_line_2: '',
-    city: '',
-    state: '',
-    zip_code: '',
-    website: '',
-    subdomain: '',
-    custom_domain: ''
-  });
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
 
   if (user) return <Navigate to="/" replace />;
 
   async function signInWithProText() {
     setError(null);
+    setSigningIn(true);
     try {
-      const result = await import('../api/admin').then((api) => api.getProTextAuthorizationUrl());
+      const result = await getProTextAuthorizationUrl();
       window.location.assign(result.authorization_url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'OAuth sign-in failed');
+      setSigningIn(false);
     }
   }
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    try {
-      if (mode === 'login') await signIn(form.email, form.password);
-      else await signUp(form);
-      navigate('/');
-    } catch (err) {
-      if (err instanceof ApiError && err.body && typeof err.body === 'object') {
-        const body = err.body as { details?: string[]; error?: string };
-        if (body.details && body.details.length > 0) {
-          setError(body.details.join(', '));
-          return;
-        }
-      }
-      setError(err instanceof Error ? err.message : 'Authentication failed');
-    }
-  }
+  const signInButton = (label = 'Sign in with ProText') => (
+    <button className="marketing-cta" type="button" onClick={() => void signInWithProText()} disabled={signingIn}>
+      <span>{signingIn ? 'Connecting…' : label}</span><ArrowRight size={18} aria-hidden="true" />
+    </button>
+  );
 
   return (
-    <div className="auth-page">
-      <form className="card auth-card" onSubmit={submit}>
-        <h1>{mode === 'login' ? 'Sign in' : 'Create your workspace'}</h1>
-        <p className="muted">Manage document collection loans, reviews, and secure client uploads.</p>
-        {mode === 'register' && (
-          <>
-            <label>Company<input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></label>
-            <label>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-            <label>Phone number<input value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} /></label>
-            <label>Address line 1<input value={form.address_line_1} onChange={(e) => setForm({ ...form, address_line_1: e.target.value })} /></label>
-            <label>Address line 2<input value={form.address_line_2} onChange={(e) => setForm({ ...form, address_line_2: e.target.value })} /></label>
-            <label>City<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></label>
-            <label>State<input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></label>
-            <label>Zip code<input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} /></label>
-            <label>Website<input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></label>
-            <label>Subdomain<input value={form.subdomain} onChange={(e) => setForm({ ...form, subdomain: e.target.value })} /></label>
-            <label>Custom domain<input placeholder="documents.mycompany.com" value={form.custom_domain} onChange={(e) => setForm({ ...form, custom_domain: e.target.value })} /></label>
-          </>
-        )}
-        <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
-        <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-        {mode === 'login' && (
-          <div style={{ textAlign: 'right', marginTop: '-10px', marginBottom: '15px' }}>
-            <Link to="/forgot-password" style={{ fontSize: '0.9em', textDecoration: 'none', color: '#0066cc' }}>
-              Forgot password?
-            </Link>
-          </div>
-        )}
-        {error && <div className="error">{error}</div>}
-        <button className="primary" type="submit">{mode === 'login' ? 'Sign in' : 'Register'}</button>
-        {mode === 'login' && (
-          <button className="primary" type="button" onClick={() => void signInWithProText()}>
-            Sign in with ProText
-          </button>
-        )}
-        <button type="button" className="link-button" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-          {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'}
+    <div className="marketing-page">
+      <header className="marketing-nav">
+        <a className="marketing-brand" href="#top" aria-label="ProText Gather home">
+          <span className="marketing-brand-mark"><FileCheck2 size={22} /></span>
+          <span>ProText <strong>Gather</strong></span>
+        </a>
+        <nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="#why-gather">Why Gather</a></nav>
+        <button className="marketing-signin" type="button" onClick={() => void signInWithProText()} disabled={signingIn}>
+          Sign in <ArrowRight size={16} aria-hidden="true" />
         </button>
-      </form>
+      </header>
+
+      <main id="top">
+        <section className="marketing-hero">
+          <div className="marketing-orb marketing-orb-one" /><div className="marketing-orb marketing-orb-two" />
+          <div className="marketing-hero-copy">
+            <div className="marketing-eyebrow"><Sparkles size={15} /> Document collection, simplified</div>
+            <h1>Stop chasing documents.<br /><span>Start closing faster.</span></h1>
+            <p>Gather turns scattered follow-ups into one calm, secure workflow—so your team knows what is complete, what is missing, and what comes next.</p>
+            <div className="marketing-hero-actions">
+              {signInButton('Open your workspace')}
+              <span><ShieldCheck size={17} /> Secure sign-in through ProText</span>
+            </div>
+            {error && <div className="error marketing-error" role="alert">{error}</div>}
+          </div>
+
+          <div className="product-preview" aria-label="Gather product preview">
+            <div className="preview-window-bar">
+              <div className="preview-dots"><i /><i /><i /></div><span>Document request</span><span className="preview-secure"><ShieldCheck size={13} /> Secure</span>
+            </div>
+            <div className="preview-body">
+              <aside className="preview-sidebar"><span className="preview-logo"><FileCheck2 size={16} /></span><i className="active" /><i /><i /><i /></aside>
+              <div className="preview-content">
+                <div className="preview-heading"><div><small>Rivera Home Loan</small><strong>Document collection</strong></div><span>75% complete</span></div>
+                <div className="preview-progress"><i /></div>
+                <div className="preview-list">
+                  <div className="preview-row complete"><span><Check size={16} /></span><div><strong>Photo ID</strong><small>Received today</small></div><b>Approved</b></div>
+                  <div className="preview-row complete"><span><Check size={16} /></span><div><strong>Bank statements</strong><small>2 files received</small></div><b>Approved</b></div>
+                  <div className="preview-row pending"><span><Clock3 size={16} /></span><div><strong>Proof of income</strong><small>Awaiting upload</small></div><b>Pending</b></div>
+                </div>
+                <div className="preview-activity"><Users size={16} /><span><strong>Everyone is in sync.</strong> Updates appear here in real time.</span></div>
+              </div>
+            </div>
+            <div className="preview-float preview-float-top"><Zap size={17} /><span><strong>3 files received</strong><small>Just now</small></span></div>
+            <div className="preview-float preview-float-bottom"><Check size={17} /><span><strong>Request complete</strong><small>Ready for review</small></span></div>
+          </div>
+        </section>
+
+        <section className="marketing-trust" aria-label="Benefits"><span>One link for your clients</span><i /><span>One view for your team</span><i /><span>Every document accounted for</span></section>
+
+        <section className="marketing-features" id="how-it-works">
+          <div className="marketing-section-heading"><span>How it works</span><h2>A better experience on both sides of the request.</h2><p>Less friction for clients. More visibility for your team. Everything needed to move work forward.</p></div>
+          <div className="marketing-feature-grid">
+            {features.map(({ icon: Icon, title, copy }, index) => (
+              <article key={title} className="marketing-feature-card"><div className="feature-number">0{index + 1}</div><div className="feature-icon"><Icon size={24} /></div><h3>{title}</h3><p>{copy}</p></article>
+            ))}
+          </div>
+        </section>
+
+        <section className="marketing-focus" id="why-gather">
+          <div><span className="marketing-kicker">Built for momentum</span><h2>Your team’s clearest path from request to complete.</h2></div>
+          <div className="marketing-focus-list"><p><Check size={18} /> Live status for every document request</p><p><Check size={18} /> Secure client uploads from any device</p><p><Check size={18} /> Organized review and approval workflows</p><p><Check size={18} /> Company workspaces that stay separate</p></div>
+        </section>
+
+        <section className="marketing-bottom-cta"><div className="cta-spark"><Sparkles size={26} /></div><span>Ready when you are</span><h2>Bring every document<br />into focus.</h2><p>Your ProText workspace is one secure sign-in away.</p>{signInButton()}</section>
+      </main>
+
+      <footer className="marketing-footer">
+        <div className="marketing-brand"><span className="marketing-brand-mark"><FileCheck2 size={20} /></span><span>ProText <strong>Gather</strong></span></div>
+        <p>Secure document collection that keeps work moving.</p><span>© {new Date().getFullYear()} ProText</span>
+      </footer>
     </div>
   );
 }

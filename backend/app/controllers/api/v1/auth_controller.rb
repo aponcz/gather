@@ -12,30 +12,6 @@ module Api
 
       before_action :authenticate_user!, only: %i[me switch_company]
 
-      def register
-        company = Company.create!(company_registration_params)
-        user = User.create!(
-          company: company,
-          name: params.require(:name),
-          email: params.require(:email).downcase,
-          password: params.require(:password),
-          role: :admin
-        )
-        company.company_memberships.find_or_create_by!(user: user) { |membership| membership.role = "admin" }
-        render_auth_payload(user, company, status: :created)
-      end
-
-      def login
-        user = authenticate_by_email(params.require(:email), params.require(:password))
-        return render(json: { error: "invalid_credentials" }, status: :unauthorized) if user.blank?
-
-        company = resolve_login_company!(user)
-
-        user.update_column(:last_login_at, Time.current)
-
-        render_auth_payload(user, company)
-      end
-
       def oauth_goprotext_start
         state = SecureRandom.urlsafe_base64(32)
         cache_oauth_state(state)
@@ -318,51 +294,6 @@ module Api
         company.company_memberships.find_or_create_by!(user: user) do |membership|
           membership.role = role
         end
-      end
-
-      def authenticate_by_email(email, password)
-        normalized_email = email.to_s.downcase
-        User.where("LOWER(email) = ?", normalized_email).find { |candidate| candidate.authenticate(password) }
-      end
-
-      def company_registration_params
-        permitted = params.permit(
-          :company_name,
-          :phone_number,
-          :address_line_1,
-          :address_line_2,
-          :city,
-          :state,
-          :zip_code,
-          :website,
-          :subdomain,
-          :custom_domain,
-          :status,
-          :logo,
-          :trial_started_on,
-          :activated_on,
-          :delinquent_on,
-          :suspended_on
-        )
-
-        {
-          name: permitted[:company_name],
-          phone_number: permitted[:phone_number],
-          address_line_1: permitted[:address_line_1],
-          address_line_2: permitted[:address_line_2],
-          city: permitted[:city],
-          state: permitted[:state],
-          zip_code: permitted[:zip_code],
-          website: permitted[:website],
-          subdomain: permitted[:subdomain],
-          custom_domain: permitted[:custom_domain],
-          status: permitted[:status],
-          logo: permitted[:logo],
-          trial_started_on: permitted[:trial_started_on],
-          activated_on: permitted[:activated_on],
-          delinquent_on: permitted[:delinquent_on],
-          suspended_on: permitted[:suspended_on]
-        }.compact_blank
       end
 
       def cache_reset_token(token, user_id)

@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - feature/ap/backend-frontend-integration
+      - feature/ap/remove-registration
   workflow_dispatch:
 
 permissions:

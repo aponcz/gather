@@ -2,25 +2,16 @@ Rails.application.routes.draw do
   devise_for :users,
              path: "api/v1/auth",
              defaults: { format: :json },
-             skip: [:omniauth_callbacks],
+             skip: [:sessions, :registrations, :omniauth_callbacks],
              controllers: {
-               sessions: "api/v1/devise/sessions",
-               registrations: "api/v1/devise/registrations",
                passwords: "api/v1/devise/recoveries",
                confirmations: "api/v1/devise/confirmations"
              }
-
-  devise_scope :user do
-    post "api/v1/auth/sign_in", to: "api/v1/devise/sessions#create"
-    delete "api/v1/auth/sign_out", to: "api/v1/devise/sessions#destroy"
-  end
 
   get "/health-check", to: "health#show"
 
   namespace :api do
     namespace :v1 do
-      post "/auth/register", to: "auth#register"
-      post "/auth/login", to: "auth#login"
       get "/auth/oauth/goprotext/start", to: "auth#oauth_goprotext_start"
       get "/auth/oauth/goprotext/callback", to: "auth#oauth_goprotext_callback"
       post "/auth/switch-company", to: "auth#switch_company"
