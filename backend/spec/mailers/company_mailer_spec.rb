@@ -24,6 +24,13 @@ RSpec.describe CompanyMailer, type: :mailer do
       expect(mail.subject).to eq('Reset your Gather password')
       expect(mail.body.encoded).to include(company_name)
       expect(mail.body.encoded).to include("/reset-password/#{token}")
+      expect(JSON.parse(mail['X-SMTPAPI'].value)).to eq(
+        'filters' => {
+          'clicktrack' => {
+            'settings' => { 'enable' => 0, 'enable_text' => false }
+          }
+        }
+      )
     end
   end
 end
