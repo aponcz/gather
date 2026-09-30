@@ -4,7 +4,7 @@ This is a Rails API backend for Gather's secure document collection workflow. It
 
 ## Stack
 
-- Ruby on Rails 7 API mode
+- Ruby on Rails 8 API mode
 - PostgreSQL
 - Redis + Sidekiq
 - S3-compatible object storage; Docker uses MinIO

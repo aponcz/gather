@@ -3,7 +3,7 @@ class UploadedFile < ApplicationRecord
   belongs_to :uploaded_by_contact, class_name: "Contact", optional: true
   belongs_to :reviewed_by, class_name: "User", optional: true
 
-  enum status: { uploaded: "uploaded", approved: "approved", rejected: "rejected", quarantined: "quarantined" }
+  enum :status, { uploaded: "uploaded", approved: "approved", rejected: "rejected", quarantined: "quarantined" }
 
   validates :storage_key, :filename, :content_type, presence: true
 
