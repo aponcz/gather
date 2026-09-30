@@ -9,6 +9,9 @@ Rails.application.configure do
     redirect: { exclude: ->(request) { request.path == "/health-check" } }
   }
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  stdout_logger = ActiveSupport::Logger.new($stdout)
+  stdout_logger.formatter = config.log_formatter
+  config.logger = ActiveSupport::TaggedLogging.new(stdout_logger)
   config.action_mailer.smtp_settings = {
     address: "smtp.sendgrid.net",
     port: "587",
