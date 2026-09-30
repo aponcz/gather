@@ -49,7 +49,7 @@ RSpec.describe 'Loan add contacts', type: :request do
 
   describe 'POST /api/v1/loans/:id/add_contacts' do
     it 'adds new contacts to an existing loan and queues loan emails for new contacts' do
-      allow(SendLoanInviteJob).to receive(:perform_later)
+      allow(SendLoanInviteJob).to receive(:perform_now)
 
       post "/api/v1/loans/#{loan.id}/add_contacts", params: {
         contact_ids: [contact_two.id]
@@ -61,11 +61,11 @@ RSpec.describe 'Loan add contacts', type: :request do
       expect(body.dig('loan', 'contacts').map { |contact| contact['contact_id'] }).to include(contact_two.id)
 
       expect(loan.reload.loan_contacts.pluck(:email)).to match_array([contact_one.email, contact_two.email])
-      expect(SendLoanInviteJob).to have_received(:perform_later).once
+      expect(SendLoanInviteJob).to have_received(:perform_now).once
     end
 
     it 'adds non-global recipients directly to an existing loan' do
-      allow(SendLoanInviteJob).to receive(:perform_later)
+      allow(SendLoanInviteJob).to receive(:perform_now)
 
       post "/api/v1/loans/#{loan.id}/add_contacts", params: {
         recipients: [

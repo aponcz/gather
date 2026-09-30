@@ -36,7 +36,7 @@ module Api
           member.update!(company: current_company, role: "customer")
         end
 
-        SendMemberInviteJob.perform_later(member.id, current_company.id, generated_password)
+        SendMemberInviteJob.perform_now(member.id, current_company.id, generated_password)
         AuditLogger.log!(
           company: current_company,
           user: current_user,

@@ -56,7 +56,7 @@ module Api
 
           loan.sent! unless loan.sent?
           added_recipients.each do |loan_contact|
-            SendLoanInviteJob.perform_later(loan.id, nil, loan_contact.id)
+            SendLoanInviteJob.perform_now(loan.id, nil, loan_contact.id)
           end
           AuditLogger.log!(company: current_company, loan: loan, user: current_user, action: "loan.created", metadata: { bulk_contact_count: added_recipients.length })
           loan
@@ -154,7 +154,7 @@ module Api
           end
 
           added_recipients.each do |loan_contact|
-            SendLoanInviteJob.perform_later(loan.id, nil, loan_contact.id)
+            SendLoanInviteJob.perform_now(loan.id, nil, loan_contact.id)
           end
 
           AuditLogger.log!(
@@ -176,10 +176,10 @@ module Api
         loan.sent! unless loan.sent?
         if loan.loan_contacts.exists?
           loan.loan_contacts.find_each do |recipient|
-            SendLoanInviteJob.perform_later(loan.id, nil, recipient.id)
+            SendLoanInviteJob.perform_now(loan.id, nil, recipient.id)
           end
         else
-          SendLoanInviteJob.perform_later(loan.id)
+          SendLoanInviteJob.perform_now(loan.id)
         end
         render json: { status: "queued", loan: loan }
       end

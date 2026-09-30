@@ -37,7 +37,7 @@ RSpec.describe 'Loan bulk create', type: :request do
 
   describe 'POST /api/v1/loans/bulk_create' do
     it 'creates one shared loan with multiple contacts and enqueues loan emails to all' do
-      allow(SendLoanInviteJob).to receive(:perform_later)
+      allow(SendLoanInviteJob).to receive(:perform_now)
 
       post '/api/v1/loans/bulk_create', params: {
         contact_ids: [contact_one.id, contact_two.id],
@@ -67,11 +67,11 @@ RSpec.describe 'Loan bulk create', type: :request do
       expect(loan.loan_contacts.pluck(:email)).to match_array([contact_one.email, contact_two.email])
 
       # Loan should be sent to both contacts (SendLoanInviteJob called twice)
-      expect(SendLoanInviteJob).to have_received(:perform_later).twice
+      expect(SendLoanInviteJob).to have_received(:perform_now).twice
     end
 
     it 'creates loan recipients directly without global contacts' do
-      allow(SendLoanInviteJob).to receive(:perform_later)
+      allow(SendLoanInviteJob).to receive(:perform_now)
 
       post '/api/v1/loans/bulk_create', params: {
         recipients: [
