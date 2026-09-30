@@ -33,8 +33,20 @@ module Authentication
     payload = JwtService.decode(token)
     return render(json: { error: "wrong_token_type" }, status: :unauthorized) unless payload["type"] == "client"
 
-    @current_contact = Contact.find(payload.fetch("contact_id"))
-    @current_company = @current_contact.company
+    if payload["contact_id"].present?
+      @current_contact = Contact.find(payload["contact_id"])
+      @current_company = @current_contact.company
+      @current_client_email = @current_contact.email.to_s.downcase
+      @current_client_contact_id = @current_contact.id
+    elsif payload["loan_contact_id"].present?
+      @current_loan_contact = LoanContact.includes(:loan).find(payload["loan_contact_id"])
+      @current_contact = @current_loan_contact.contact
+      @current_company = @current_loan_contact.loan.company
+      @current_client_email = @current_loan_contact.email.to_s.downcase
+      @current_client_contact_id = @current_contact&.id
+    else
+      raise KeyError, "client identity missing"
+    end
   rescue JWT::DecodeError, ActiveRecord::RecordNotFound, KeyError
     render json: { error: "invalid_token" }, status: :unauthorized
   end

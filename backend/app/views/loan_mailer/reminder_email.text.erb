@@ -1,0 +1,7 @@
+Hi<%= " #{@recipient_name}" if @recipient_name.present? %>,
+
+This is a reminder to complete your document request for "<%= @loan.title %>".
+
+Continue your request: <%= @client_url %>
+
+This personal link expires in 7 days. Please don't forward it.

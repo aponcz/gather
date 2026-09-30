@@ -1,0 +1,12 @@
+Hi<%= " #{@recipient_name}" if @recipient_name.present? %>,
+
+You still have documents to submit for "<%= @loan.title %>".
+
+Outstanding documents:
+<% @pending_items.each do |item| %>
+- <%= item.title %>
+<% end %>
+
+Complete your request: <%= @client_url %>
+
+This personal link expires in 7 days. Please don't forward it.

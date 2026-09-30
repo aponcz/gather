@@ -10,7 +10,7 @@ class User < ApplicationRecord
   has_many :companies, through: :company_memberships
   has_many :audit_events, dependent: :nullify
 
-  enum role: { god: "god", admin: "admin", customer: "customer" }
+  enum :role, { god: "god", admin: "admin", customer: "customer" }
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true

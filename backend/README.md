@@ -4,7 +4,7 @@ This is a Rails API backend for Gather's secure document collection workflow. It
 
 ## Stack
 
-- Ruby on Rails 7 API mode
+- Ruby on Rails 8 API mode
 - PostgreSQL
 - Redis + Sidekiq
 - S3-compatible object storage; Docker uses MinIO
@@ -83,9 +83,25 @@ environment (`repo:OWNER/REPOSITORY:environment:stage`, audience
 
 Keep runtime configuration and secrets in the ECS task definition and its secret
 references, including `RAILS_ENV=production`, database/Redis connections, and Rails
-secrets. The Dockerfile runs `rails db:prepare` before starting Puma, so the task
+secrets. Email delivery uses SendGrid SMTP and requires `SENDGRID_USERNAME` and
+`SENDGRID_PASSWORD` in the web and worker task definitions. The Dockerfile runs
+`rails db:prepare` before starting Puma, so the task
 needs database connectivity and migration permissions. Use migrations compatible
 with the previous version while ECS performs a rolling update.
+
+## Email delivery
+
+Production sends application email through SendGrid SMTP at
+`smtp.sendgrid.net:587` using STARTTLS. Configure these environment variables for
+every process that sends email:
+
+```text
+SENDGRID_USERNAME=apikey
+SENDGRID_PASSWORD=<SendGrid API key>
+```
+
+The authenticated SendGrid account must allow mail from the address configured by
+`MAIL_FROM` (and `DEVISE_MAILER_SENDER`, where applicable).
 
 The workflow follows the AWS
 [ECS deployment action](https://github.com/aws-actions/amazon-ecs-deploy-task-definition)

@@ -6,7 +6,7 @@ class Company < ApplicationRecord
 	has_many :request_items, through: :loans
 	has_many :uploaded_files, through: :request_items
 
-	enum status: {
+	enum :status, {
 		trial: 0,
 		active: 1,
 		delinquent: 2,

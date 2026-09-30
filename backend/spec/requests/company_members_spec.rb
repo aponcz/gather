@@ -46,7 +46,7 @@ RSpec.describe 'Company members', type: :request do
 
   describe 'POST /api/v1/company_members' do
     it 'creates a company member and queues invite email' do
-      allow(SendMemberInviteJob).to receive(:perform_later)
+      allow(SendMemberInviteJob).to receive(:perform_now)
 
       post '/api/v1/company_members', params: {
         name: 'New Member',
@@ -62,7 +62,7 @@ RSpec.describe 'Company members', type: :request do
 
       created_user = company.users.find_by!(email: new_member_email)
       expect(created_user.role).to eq('customer')
-      expect(SendMemberInviteJob).to have_received(:perform_later).with(created_user.id, company.id, kind_of(String)).once
+      expect(SendMemberInviteJob).to have_received(:perform_now).with(created_user.id, company.id, kind_of(String)).once
     end
 
     it 'returns forbidden for non-admin users' do

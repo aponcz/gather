@@ -8,7 +8,7 @@ class Loan < ApplicationRecord
   has_many :loan_contacts, dependent: :destroy
   has_many :contacts, through: :loan_contacts
 
-  enum status: {
+  enum :status, {
     draft: "draft",
     sent: "sent",
     viewed: "viewed",

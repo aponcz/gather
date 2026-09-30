@@ -1,0 +1,12 @@
+<div style="height:6px;background:#7947eb;font-size:0;line-height:0;">&nbsp;</div>
+<div style="padding:48px 48px 42px;">
+  <div style="display:inline-block;padding:7px 11px;border:1px solid #f1ddbd;border-radius:999px;background:#fff4e3;color:#a66620;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Friendly reminder</div>
+  <h1 style="margin:22px 0 16px;color:#17132d;font-size:34px;line-height:1.12;letter-spacing:-1.3px;">A quick nudge to<br><span style="color:#7544ed;">keep things moving.</span></h1>
+  <p style="margin:0 0 12px;color:#5f596d;font-size:16px;line-height:1.7;">Hi<%= " #{@recipient_name}" if @recipient_name.present? %>,</p>
+  <p style="margin:0;color:#5f596d;font-size:16px;line-height:1.7;">Your document request for <strong style="color:#28223f;"><%= @loan.title %></strong> still needs your attention. You can pick up right where you left off.</p>
+  <% if @loan.due_at.present? %>
+    <div style="margin:24px 0 0;padding:16px 18px;border-radius:12px;background:#f7f4fb;color:#5f596d;font-size:14px;"><strong style="color:#7544ed;">Due <%= @loan.due_at.strftime('%B %-d, %Y') %></strong></div>
+  <% end %>
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:30px;"><tr><td style="border-radius:14px;background:#7544ed;"><a clicktracking="off" href="<%= @client_url %>" style="display:inline-block;padding:15px 22px;color:#ffffff;font-size:15px;font-weight:800;text-decoration:none;">Continue your request&nbsp;&nbsp;→</a></td></tr></table>
+  <p style="margin:22px 0 0;color:#918b9e;font-size:12px;line-height:1.6;">This personal link securely signs you in and expires in 7 days. Please don’t forward it.</p>
+</div>
