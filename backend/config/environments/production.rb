@@ -10,12 +10,13 @@ Rails.application.configure do
   }
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
   config.action_mailer.smtp_settings = {
-    address: ENV["SMTP_ADDRESS"],
-    port: ENV.fetch("SMTP_PORT", 587),
-    user_name: ENV["SMTP_USERNAME"],
-    password: ENV["SMTP_PASSWORD"],
+    address: "smtp.sendgrid.net",
+    port: "587",
     authentication: :plain,
+    user_name: ENV["SENDGRID_USERNAME"],
+    password: ENV["SENDGRID_PASSWORD"],
+    domain: "goprotext.com",
     enable_starttls_auto: true
   }
-  config.action_mailer.delivery_method = :smtp if ENV["SMTP_ADDRESS"].present?
+  config.action_mailer.delivery_method = :smtp
 end
