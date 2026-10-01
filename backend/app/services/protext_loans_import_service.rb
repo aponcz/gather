@@ -108,6 +108,7 @@ class ProtextLoansImportService
       response = perform_http_request(uri, request)
 
       unless response.is_a?(Net::HTTPSuccess)
+        Rails.logger.error("fetch_loans failed: #{response.code} #{response.message}\nBody: #{response.body}")
         raise Error, "loans_request_failed_#{response.code}"
       end
 
