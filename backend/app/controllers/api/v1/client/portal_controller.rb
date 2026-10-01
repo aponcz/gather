@@ -5,7 +5,7 @@ module Api
         before_action :authenticate_client!, except: %i[request_magic_link create_session]
 
         def request_magic_link
-          contact = Contact.find_by!(email: params.require(:email).downcase)
+          contact = Contact.active.find_by!(email: params.require(:email).downcase)
           token = JwtService.encode({ contact_id: contact.id, company_id: contact.company_id, type: "client_magic" }, expires_in: 20.minutes)
           # In production, email this token as a link instead of returning it.
           render json: { magic_token: token }
@@ -59,7 +59,7 @@ module Api
 
         def client_identity_from(payload)
           if payload["contact_id"].present?
-            contact = Contact.find(payload["contact_id"])
+            contact = Contact.active.find(payload["contact_id"])
             [{ contact_id: contact.id, company_id: contact.company_id }, contact]
           elsif payload["loan_contact_id"].present?
             loan_contact = LoanContact.includes(:loan).find(payload["loan_contact_id"])

@@ -1,5 +1,6 @@
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, CSSProperties, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { Check, Clock3, Download, FileCheck2, FileText, ShieldCheck, Sparkles, UploadCloud } from 'lucide-react';
 import * as clientApi from '../api/clientPortal';
 import { Loan, RequestItem } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
@@ -69,8 +70,8 @@ export function ClientLoan() {
     }
   }
 
-  if (error) return <div className="center-card"><div className="error">{error}</div><Link to="/client">Sign in to client portal</Link></div>;
-  if (!loan) return <div className="center-card">Loading client loan…</div>;
+  if (error && !loan) return <div className="client-portal-state"><div className="client-state-mark"><FileCheck2 size={24} /></div><div className="error">{error}</div><Link to="/client">Sign in to client portal</Link></div>;
+  if (!loan) return <div className="client-portal-state"><div className="client-state-mark"><FileCheck2 size={24} /></div><span>Loading your document request…</span></div>;
 
   const totalRequestedDocuments = loan.request_items?.length || 0;
   const uploadedDocuments = (loan.request_items || []).filter((item) => (item.uploaded_files || []).length > 0).length;
@@ -83,38 +84,78 @@ export function ClientLoan() {
   }, {});
   const loanAmount = formatCurrencyFromCents(loan.loan_amount_in_cents);
 
-  return <section className="client-page">
-    <div className="client-header" style={{ borderColor: loan.brand_color || undefined }}>
-      {loan.logo_url && <img src={loan.logo_url} alt="Company logo" />}
-      <h1>{loan.title}</h1>
-      <p>{loan.message}</p>
-      {(loanAmount || loan.loan_type) && (
-        <p className="muted">{[loanAmount, loan.loan_type].filter(Boolean).join(' · ')}</p>
-      )}
-      {loan.due_at && <p className="muted">Due {new Date(loan.due_at).toLocaleDateString()}</p>}
-    </div>
-    <div className="card">
-      <h2>Requested documents</h2>
-      <div className="progress-meta">
-        <span>{uploadedDocuments} of {totalRequestedDocuments} uploaded</span>
-        <strong>{percentComplete}%</strong>
+  return <div className="client-portal" style={{ '--client-accent': loan.brand_color || '#7544ed' } as CSSProperties}>
+    <div className="client-portal-orb client-portal-orb-one" /><div className="client-portal-orb client-portal-orb-two" />
+    <header className="client-portal-nav">
+      <div className="marketing-brand">
+        <span className="marketing-brand-mark"><FileCheck2 size={21} /></span>
+        <span>ProText <strong>Gather</strong></span>
       </div>
-      <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
-        <div className="progress-fill" style={{ width: `${percentComplete}%` }} />
-      </div>
-      {Object.keys(groupedRequestedItems).map((sectionName) => <div className="section-group" key={sectionName}>
-        <h3 className="section-title">{sectionName}</h3>
-        {groupedRequestedItems[sectionName].map(item => <div className="client-item" key={item.id}>
-          <div><strong>{item.title}</strong><p className="muted">{item.description || 'Upload the requested file.'}</p></div>
-          <div>
-            <input type="file" onChange={(event) => handleFile(item.id, event)} disabled={uploading === item.id} />
-            {uploading === item.id && <span className="muted">Uploading…</span>}
+      <span className="client-secure"><ShieldCheck size={16} /><span>Secure client portal</span></span>
+    </header>
+
+    <main className="client-portal-main">
+      <section className="client-portal-hero">
+        <div className="client-hero-copy">
+          <div className="marketing-eyebrow"><Sparkles size={15} /> Document request</div>
+          {loan.logo_url && <img className="client-company-logo" src={loan.logo_url} alt="Company logo" />}
+          <h1>{loan.title}</h1>
+          {loan.message && <p className="client-hero-message">{loan.message}</p>}
+          <div className="client-loan-meta">
+            {(loanAmount || loan.loan_type) && <span><FileText size={16} /> {[loanAmount, loan.loan_type].filter(Boolean).join(' · ')}</span>}
+            {loan.due_at && <span><Clock3 size={16} /> Due {new Date(loan.due_at).toLocaleDateString()}</span>}
           </div>
-          <div className="file-list">
-            {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}><span>{file.filename}</span><StatusBadge status={file.status} /><button className="secondary" onClick={() => downloadFile(file.id)}>Download</button></div>)}
+        </div>
+
+        <aside className="client-progress-card">
+          <div className="client-progress-top">
+            <div><span>Your progress</span><strong>{percentComplete}% complete</strong></div>
+            <div className={percentComplete === 100 ? 'client-progress-icon complete' : 'client-progress-icon'}>{percentComplete === 100 ? <Check size={24} /> : <UploadCloud size={24} />}</div>
+          </div>
+          <div className="client-progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
+            <div style={{ width: `${percentComplete}%` }} />
+          </div>
+          <p><strong>{uploadedDocuments}</strong> of {totalRequestedDocuments} requested items uploaded</p>
+        </aside>
+      </section>
+
+      <section className="client-request-panel">
+        <div className="client-panel-heading">
+          <div><span>What we need</span><h2>Requested documents</h2></div>
+          <p>Choose a file for each item below. Your uploads are securely added to this request.</p>
+        </div>
+        {error && <div className="error client-request-error" role="alert">{error}</div>}
+
+        {Object.keys(groupedRequestedItems).map((sectionName) => <div className="client-section-group" key={sectionName}>
+          <h3>{sectionName}</h3>
+          <div className="client-request-list">
+            {groupedRequestedItems[sectionName].map(item => {
+              const files = item.uploaded_files || [];
+              const hasFiles = files.length > 0;
+              const inputId = `request-file-${item.id}`;
+              return <article className={hasFiles ? 'client-request-card has-file' : 'client-request-card'} key={item.id}>
+                <div className="client-request-status">{hasFiles ? <Check size={19} /> : <FileText size={19} />}</div>
+                <div className="client-request-copy">
+                  <div className="client-request-title"><strong>{item.title}</strong>{item.required && <span>Required</span>}</div>
+                  <p>{item.description || 'Upload the requested file.'}</p>
+                  {files.length > 0 && <div className="client-file-list">
+                    {files.map(file => <div className="client-uploaded-file" key={file.id}>
+                      <FileCheck2 size={17} /><span title={file.filename}>{file.filename}</span><StatusBadge status={file.status} />
+                      <button type="button" onClick={() => downloadFile(file.id)} aria-label={`Download ${file.filename}`}><Download size={16} /><span>Download</span></button>
+                    </div>)}
+                  </div>}
+                </div>
+                <div className="client-upload-control">
+                  <input id={inputId} type="file" onChange={(event) => handleFile(item.id, event)} disabled={uploading === item.id} />
+                  <label htmlFor={inputId}><UploadCloud size={17} /> {uploading === item.id ? 'Uploading…' : hasFiles ? 'Upload another' : 'Choose file'}</label>
+                </div>
+              </article>;
+            })}
           </div>
         </div>)}
-      </div>)}
-    </div>
-  </section>;
+      </section>
+    </main>
+
+    <footer className="client-portal-footer"><ShieldCheck size={15} /><span>Your files are transferred securely through ProText Gather.</span></footer>
+  </div>;
 }

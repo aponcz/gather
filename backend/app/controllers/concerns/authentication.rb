@@ -34,7 +34,7 @@ module Authentication
     return render(json: { error: "wrong_token_type" }, status: :unauthorized) unless payload["type"] == "client"
 
     if payload["contact_id"].present?
-      @current_contact = Contact.find(payload["contact_id"])
+      @current_contact = Contact.active.find(payload["contact_id"])
       @current_company = @current_contact.company
       @current_client_email = @current_contact.email.to_s.downcase
       @current_client_contact_id = @current_contact.id

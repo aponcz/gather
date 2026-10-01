@@ -30,7 +30,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   const body = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw new ApiError(body?.error || response.statusText, response.status, body);
+    const message = typeof body?.details === 'string' ? body.details : body?.error || response.statusText;
+    throw new ApiError(message, response.status, body);
   }
 
   return body as T;
@@ -51,7 +52,8 @@ export async function apiFetchBlob(path: string, options: ApiOptions = {}): Prom
   if (!response.ok) {
     const text = await response.text();
     const body = text ? JSON.parse(text) : null;
-    throw new ApiError(body?.error || response.statusText, response.status, body);
+    const message = typeof body?.details === 'string' ? body.details : body?.error || response.statusText;
+    throw new ApiError(message, response.status, body);
   }
 
   const blob = await response.blob();

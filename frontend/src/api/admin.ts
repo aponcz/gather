@@ -71,13 +71,6 @@ export function updateUserRole(id: number | string, role: 'god' | 'admin' | 'cus
   });
 }
 
-export function inviteCompanyMember(payload: { name: string; email: string; role: 'owner' | 'admin' | 'member' }) {
-  return apiFetch<CompanyMember>('/api/v1/company_members', {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
-}
-
 export function listCompanyMembers() {
   return apiFetch<CompanyMember[]>('/api/v1/company_members');
 }
@@ -97,8 +90,25 @@ export function createContact(payload: { name: string; email: string; phone?: st
   return apiFetch<Contact>('/api/v1/contacts', { method: 'POST', body: JSON.stringify(payload) });
 }
 
+export function updateContact(id: string | number, payload: { name: string; email: string; phone?: string }) {
+  return apiFetch<Contact>(`/api/v1/contacts/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+}
+
+export function deleteContact(id: string | number) {
+  return apiFetch<void>(`/api/v1/contacts/${id}`, { method: 'DELETE' });
+}
+
 export function listLoans() {
   return apiFetch<Loan[]>('/api/v1/loans');
+}
+
+export function importProTextLoans() {
+  return apiFetch<{
+    fetched_count: number;
+    created_count: number;
+    skipped_count: number;
+    loans: Array<{ id: number; title: string }>;
+  }>('/api/v1/loans/import_loans', { method: 'POST' });
 }
 
 export function getLoan(id: string | number) {

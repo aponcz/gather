@@ -76,7 +76,7 @@ module Api
         render json: result, status: :created
       rescue ProtextLoansImportService::Error => e
         Rails.logger.error("ProText loans import failed: #{e.message}")
-        render json: { error: "protext_sync_failed", details: e.message }, status: :bad_gateway
+        render json: { error: "protext_sync_failed", details: e.message }, status: :unprocessable_entity
       end
 
       def fetch_required_documents
@@ -257,7 +257,7 @@ module Api
 
         contact_ids = Array(params[:contact_ids]).map(&:to_s).reject(&:blank?).uniq
         if contact_ids.any?
-          contacts = current_company.contacts.where(id: contact_ids).index_by { |contact| contact.id.to_s }
+          contacts = current_company.contacts.active.where(id: contact_ids).index_by { |contact| contact.id.to_s }
           missing_contact_ids = contact_ids - contacts.keys
 
           (contact_ids - missing_contact_ids).each do |contact_id|

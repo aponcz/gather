@@ -10,10 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_10_121000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_01_193000) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
-  enable_extension "plpgsql"
 
   create_table "audit_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "company_id", null: false
@@ -71,6 +71,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_121000) do
     t.index ["user_id"], name: "index_company_memberships_on_user_id"
   end
 
+  create_table "company_sign_in_codes", force: :cascade do |t|
+    t.string "digest", null: false
+    t.uuid "user_id", null: false
+    t.uuid "company_id", null: false
+    t.datetime "expires_at", null: false
+    t.index ["company_id"], name: "index_company_sign_in_codes_on_company_id"
+    t.index ["digest"], name: "index_company_sign_in_codes_on_digest", unique: true
+    t.index ["expires_at"], name: "index_company_sign_in_codes_on_expires_at"
+    t.index ["user_id"], name: "index_company_sign_in_codes_on_user_id"
+  end
+
   create_table "contacts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "company_id", null: false
     t.string "name", null: false
@@ -79,8 +90,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_121000) do
     t.string "external_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["company_id", "email"], name: "index_contacts_on_company_id_and_email", unique: true
+    t.datetime "deleted_at"
+    t.index ["company_id", "email"], name: "index_contacts_on_company_id_and_email", unique: true, where: "(deleted_at IS NULL)"
     t.index ["company_id"], name: "index_contacts_on_company_id"
+    t.index ["deleted_at"], name: "index_contacts_on_deleted_at"
   end
 
   create_table "loan_contacts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -218,6 +231,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_10_121000) do
   add_foreign_key "audit_events", "users"
   add_foreign_key "company_memberships", "companies"
   add_foreign_key "company_memberships", "users"
+  add_foreign_key "company_sign_in_codes", "companies", on_delete: :cascade
+  add_foreign_key "company_sign_in_codes", "users", on_delete: :cascade
   add_foreign_key "contacts", "companies"
   add_foreign_key "loan_contacts", "contacts"
   add_foreign_key "loan_contacts", "loans"

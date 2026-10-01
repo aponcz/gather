@@ -9,47 +9,6 @@ module Api
         render json: memberships.map { |membership| member_payload(membership.user, membership) }
       end
 
-      def create
-        email = member_params.fetch(:email).downcase
-        member = User.find_by(email: email)
-        existing_user = member.present?
-        generated_password = nil
-
-        if member.nil?
-          generated_password = SecureRandom.base58(14)
-          member = User.create!(
-            company: current_company,
-            name: member_params.fetch(:name),
-            email: email,
-            role: "customer",
-            password: generated_password
-          )
-        end
-
-        membership = current_company.company_memberships.find_or_initialize_by(user: member)
-        return render(json: { error: "already_member" }, status: :unprocessable_entity) if membership.persisted? && existing_user
-
-        membership.role = role_param
-        membership.save! if membership.new_record? || membership.changed?
-
-        if member.company_id.blank? || member.company_id == current_company.id
-          member.update!(company: current_company, role: "customer")
-        end
-
-        SendMemberInviteJob.perform_now(member.id, current_company.id, generated_password)
-        AuditLogger.log!(
-          company: current_company,
-          user: current_user,
-          action: "company.member_invited",
-          metadata: {
-            invited_email: member.email,
-            role: membership.role
-          }
-        )
-
-        render json: member_payload(member, membership), status: :created
-      end
-
       def update
         membership = current_company.company_memberships.find_by!(user_id: params[:id])
         member = membership.user
@@ -75,10 +34,6 @@ module Api
         return if current_membership&.admin? || current_membership&.owner?
 
         render json: { error: "forbidden" }, status: :forbidden
-      end
-
-      def invite_params
-        params.permit(:role)
       end
 
       def member_params
