@@ -32,7 +32,8 @@ export function App() {
         <Route path="/client/loans/:publicToken" element={<ClientLoan />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Navigate to="/loans" replace />} />
+            <Route path="/loans" element={<Dashboard />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/company" element={<Company />} />
             <Route path="/switch-company" element={<SwitchCompany />} />

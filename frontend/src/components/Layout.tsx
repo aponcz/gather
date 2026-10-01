@@ -46,7 +46,7 @@ export function Layout() {
           </div>
         )}
         <nav>
-          <NavLink to="/" end>Dashboard</NavLink>
+          <NavLink to="/loans" end>Loans</NavLink>
           {canAccessAdminDashboard && <NavLink to="/admin">Admin Dashboard</NavLink>}
           <NavLink to="/loans/new">New Loan</NavLink>
           <NavLink to="/contacts">Contacts</NavLink>
