@@ -138,10 +138,10 @@ RSpec.describe 'Loan import loans', type: :request do
       expect(company.loans.count).to eq(3)
     end
 
-    it 'returns bad gateway when protext call fails' do
+    it 'returns the ProText API access error when the token request is denied' do
       failed_response = Net::HTTPUnauthorized.new('1.1', '401', 'Unauthorized')
       failed_response.instance_variable_set(:@read, true)
-      failed_response.instance_variable_set(:@body, { error: 'invalid_client' }.to_json)
+      failed_response.instance_variable_set(:@body, { error: 'Company does not have API access' }.to_json)
 
       allow_any_instance_of(ProtextLoansImportService)
         .to receive(:perform_http_request)
@@ -149,9 +149,31 @@ RSpec.describe 'Loan import loans', type: :request do
 
       post '/api/v1/loans/import_loans', headers: headers
 
-      expect(response).to have_http_status(:bad_gateway)
+      expect(response).to have_http_status(:unprocessable_entity)
       body = json_body
       expect(body['error']).to eq('protext_sync_failed')
+      expect(body['details']).to eq('Company does not have API access')
+    end
+
+    it 'returns the ProText API access error for display to the user' do
+      unauthorized_response = Net::HTTPUnauthorized.new('1.1', '401', 'Unauthorized')
+      unauthorized_response.instance_variable_set(:@read, true)
+      unauthorized_response.instance_variable_set(:@body, { error: 'Company does not have API access' }.to_json)
+
+      allow_any_instance_of(ProtextLoansImportService)
+        .to receive(:perform_http_request)
+        .and_return(
+          build_http_success('access_token' => 'oauth-access-token'),
+          unauthorized_response
+        )
+
+      post '/api/v1/loans/import_loans', headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_body).to include(
+        'error' => 'protext_sync_failed',
+        'details' => 'Company does not have API access'
+      )
     end
   end
 end

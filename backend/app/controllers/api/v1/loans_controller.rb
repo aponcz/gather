@@ -76,7 +76,7 @@ module Api
         render json: result, status: :created
       rescue ProtextLoansImportService::Error => e
         Rails.logger.error("ProText loans import failed: #{e.message}")
-        render json: { error: "protext_sync_failed", details: e.message }, status: :bad_gateway
+        render json: { error: "protext_sync_failed", details: e.message }, status: :unprocessable_entity
       end
 
       def fetch_required_documents

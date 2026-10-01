@@ -74,7 +74,7 @@ class ProtextLoansImportService
     response = perform_http_request(uri, request)
     unless response.is_a?(Net::HTTPSuccess)
       Rails.logger.error("fetch_access_token failed: #{response.code} #{response.message}\nBody: #{response.body}")
-      raise Error, "token_request_failed_#{response.code}"
+      raise Error, response_error_message(response, fallback: "token_request_failed_#{response.code}")
     end
 
     parsed = JSON.parse(response.body)
@@ -109,7 +109,7 @@ class ProtextLoansImportService
 
       unless response.is_a?(Net::HTTPSuccess)
         Rails.logger.error("fetch_loans failed: #{response.code} #{response.message}\nBody: #{response.body}")
-        raise Error, "loans_request_failed_#{response.code}"
+        raise Error, response_error_message(response, fallback: "loans_request_failed_#{response.code}")
       end
 
       payload = JSON.parse(response.body)
@@ -138,6 +138,16 @@ class ProtextLoansImportService
     end
 
     loans_count >= goprotext_loans_per_page
+  end
+
+  def response_error_message(response, fallback:)
+    payload = JSON.parse(response.body.to_s)
+    return fallback unless payload.is_a?(Hash)
+
+    message = payload["error"] || payload["message"] || payload["details"]
+    message.is_a?(String) && message.present? ? message : fallback
+  rescue JSON::ParserError
+    fallback
   end
 
   def extract_loans(payload)

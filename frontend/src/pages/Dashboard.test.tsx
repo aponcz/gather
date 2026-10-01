@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as adminApi from '../api/admin';
+import { ApiError } from '../api/client';
 import { Dashboard } from './Dashboard';
 
 vi.mock('../api/admin', () => ({
@@ -32,5 +33,20 @@ describe('Dashboard ProText import', () => {
     expect(screen.getByRole('status')).toHaveTextContent('1 created, 1 skipped from 2 fetched');
     expect(adminApi.importProTextLoans).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(adminApi.listLoans).toHaveBeenCalledTimes(2));
+  });
+
+  it('shows the ProText API access error returned by the backend', async () => {
+    vi.mocked(adminApi.listLoans).mockResolvedValue([]);
+    vi.mocked(adminApi.importProTextLoans).mockRejectedValue(new ApiError(
+      'Company does not have API access',
+      502,
+      { error: 'protext_sync_failed', details: 'Company does not have API access' },
+    ));
+
+    render(<MemoryRouter><Dashboard /></MemoryRouter>);
+    await screen.findByText('No loans yet');
+    await userEvent.click(screen.getByRole('button', { name: 'Import from ProText' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Company does not have API access');
   });
 });
