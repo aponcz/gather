@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Activity, ArrowLeft, CalendarDays, Check, DollarSign, Download, Edit3, ExternalLink, FileCheck2, FileText, Link2, Send, Sparkles, Users, X } from 'lucide-react';
 import * as adminApi from '../api/admin';
 import { Contact, Loan, UploadedFile } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
@@ -47,7 +48,7 @@ export function LoanDetail() {
     }
   }
 
-  if (error) return <div className="error">{error}</div>;
+  if (error && !loan) return <div className="error">{error}</div>;
   if (!loan) return <div className="center-card">Loading loan…</div>;
 
   const portalUrl = loan.public_token ? `${window.location.origin}/client/loans/${loan.public_token}` : '';
@@ -112,99 +113,96 @@ export function LoanDetail() {
     return formatAuditAction(event.action);
   }
 
-  return <section>
-    <div className="page-header">
-      <div>
-        <h1>{loan.title}</h1>
-        {recipients.length > 0 ? (
-          <div className="muted">
-            <p><strong>Recipients ({recipients.length})</strong></p>
-            {recipients.map((contact) => (
-              <p key={contact.id}>{contact.name} · {contact.email}</p>
-            ))}
-          </div>
-        ) : (
-          <p className="muted">No recipients</p>
-        )}
-      </div>
-      <div className="actions">
-        <StatusBadge status={loan.status} />
-        <Link className="secondary" to={`/loans/${loan.id}/edit`}>Edit loan</Link>
-        <button className="primary" onClick={send}>Send loan</button>
-      </div>
-    </div>
-    <div className="card">
-      <h2>Loan details</h2>
-      <div className="detail-grid">
-        <div><span className="muted">Amount</span><strong>{formatCurrencyFromCents(loan.loan_amount_in_cents)}</strong></div>
-        <div><span className="muted">Type</span><strong>{loan.loan_type || '—'}</strong></div>
-      </div>
-    </div>
-    <div className="card">
-      <h2>Client portal link</h2>
-      <p className="muted">Use this after requesting a client magic link/session.</p>
-      <code>{portalUrl}</code>
-      <p><Link to={portalUrl.replace(window.location.origin, '')}>Open client portal route</Link></p>
-    </div>
-    <div className="card">
-      <h2>Add recipients</h2>
-      <label>Select additional contacts
-        <select
-          multiple
-          value={selectedContactIds}
-          onChange={(event) => {
-            const selected = Array.from(event.target.selectedOptions).map((option) => option.value);
-            setSelectedContactIds(selected);
-          }}
-        >
-          {addableContacts.map((contact) => (
-            <option key={contact.id} value={contact.id}>{contact.name} · {contact.email}</option>
-          ))}
-        </select>
-      </label>
-      <div className="actions" style={{ marginTop: '12px' }}>
-        <button className="secondary" onClick={addContacts} disabled={selectedContactIds.length === 0}>Add selected contacts</button>
-      </div>
-    </div>
-    <div className="card">
-      <h2>Requested items</h2>
-      <div className="actions" style={{ marginBottom: '12px' }}>
-        <button className="secondary" onClick={downloadAllFiles}>Download all files (.zip)</button>
-      </div>
-      <div className="progress-meta">
-        <span>{uploadedDocuments} of {totalRequestedDocuments} uploaded</span>
-        <strong>{percentComplete}%</strong>
-      </div>
-      <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion">
-        <div className="progress-fill" style={{ width: `${percentComplete}%` }} />
-      </div>
-      {Object.keys(groupedRequestedItems).map((sectionName) => <div className="section-group" key={sectionName}>
-        <h3 className="section-title">{sectionName}</h3>
-        {(groupedRequestedItems[sectionName] || []).map(item => <div className="item-card" key={item.id}>
-          <div><strong>{item.title}</strong><p className="muted">{item.description || 'No description'} {item.required ? '· required' : ''}</p></div>
-          <div className="file-list">
-            {(item.uploaded_files || []).length === 0 && <span className="muted">No files uploaded yet.</span>}
-            {(item.uploaded_files || []).map(file => <div className="uploaded-file" key={file.id}>
-              <span>{file.filename}</span><StatusBadge status={file.status} />
-              <button className="secondary" onClick={() => download(file)}>Download</button>
-              <button className="secondary" onClick={() => approve(file)}>Approve</button>
-              <button className="danger" onClick={() => reject(file)}>Reject</button>
-            </div>)}
-          </div>
-        </div>)}
-      </div>)}
-    </div>
-    <div className="card">
-      <h2>Audit trail</h2>
-      {sortedAuditEvents.map(event => (
-        <div className="audit" key={event.id}>
-          <div>
-            <strong>{formatAuditEventText(event)}</strong>
-            <p className="muted">by {event.actor_email || 'unknown actor'}</p>
-          </div>
-          <span>{new Date(event.created_at).toLocaleString()}</span>
+  return <section className="loan-show-page">
+    <div className="loan-show-orb" />
+    <div className="loan-show-content">
+      <Link className="loan-show-back" to="/loans"><ArrowLeft size={16} /> All loans</Link>
+      <header className="loan-show-hero">
+        <div>
+          <div className="marketing-eyebrow"><Sparkles size={15} /> Loan workspace</div>
+          <h1>{loan.title}</h1>
+          <div className="loan-show-subtitle"><StatusBadge status={loan.status} /><span>{recipients.length} {recipients.length === 1 ? 'recipient' : 'recipients'}</span></div>
         </div>
-      ))}
+        <div className="loan-show-actions">
+          <Link className="loan-show-edit" to={`/loans/${loan.id}/edit`}><Edit3 size={16} /> Edit loan</Link>
+          <button className="loan-show-send" onClick={send}><Send size={16} /> Send loan</button>
+        </div>
+      </header>
+
+      {error && <div className="error loan-show-error" role="alert">{error}</div>}
+
+      <div className="loan-show-metrics">
+        <article><span><DollarSign size={18} /></span><div><small>Loan amount</small><strong>{formatCurrencyFromCents(loan.loan_amount_in_cents)}</strong></div></article>
+        <article><span><FileText size={18} /></span><div><small>Loan type</small><strong>{loan.loan_type || 'Not specified'}</strong></div></article>
+        <article><span><CalendarDays size={18} /></span><div><small>Due date</small><strong>{loan.due_at ? new Date(loan.due_at).toLocaleDateString() : 'No due date'}</strong></div></article>
+        <article className="loan-show-progress-metric"><div><small>Documents received</small><strong>{uploadedDocuments} of {totalRequestedDocuments}</strong></div><b>{percentComplete}%</b></article>
+      </div>
+
+      <div className="loan-show-grid">
+        <section className="loan-show-panel loan-review-panel">
+          <div className="loan-panel-heading">
+            <div><span>Collection progress</span><h2>Requested items</h2></div>
+            <button onClick={downloadAllFiles}><Download size={16} /> Download all</button>
+          </div>
+          <div className="loan-review-progress"><div role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete} aria-label="Upload completion"><i style={{ width: `${percentComplete}%` }} /></div><strong>{percentComplete}% complete</strong></div>
+
+          {Object.keys(groupedRequestedItems).length === 0 && <div className="loan-show-empty"><FileCheck2 size={24} /> No requested items yet.</div>}
+          {Object.keys(groupedRequestedItems).map((sectionName) => <div className="loan-review-section" key={sectionName}>
+            <h3>{sectionName}</h3>
+            {(groupedRequestedItems[sectionName] || []).map(item => {
+              const files = item.uploaded_files || [];
+              return <article className="loan-review-item" key={item.id}>
+                <div className={files.length > 0 ? 'loan-review-icon received' : 'loan-review-icon'}>{files.length > 0 ? <Check size={17} /> : <FileText size={17} />}</div>
+                <div className="loan-review-body">
+                  <div className="loan-review-title"><strong>{item.title}</strong>{item.required && <span>Required</span>}</div>
+                  <p>{item.description || 'No description'}</p>
+                  {files.length === 0 ? <div className="loan-awaiting-file">Awaiting client upload</div> : <div className="loan-review-files">
+                    {files.map(file => <div className="loan-review-file" key={file.id}>
+                      <FileCheck2 size={17} /><span title={file.filename}>{file.filename}</span><StatusBadge status={file.status} />
+                      <div className="loan-file-actions">
+                        <button onClick={() => download(file)} title="Download"><Download size={15} /><span>Download</span></button>
+                        <button className="approve" onClick={() => approve(file)} title="Approve"><Check size={15} /><span>Approve</span></button>
+                        <button className="reject" onClick={() => reject(file)} title="Reject"><X size={15} /><span>Reject</span></button>
+                      </div>
+                    </div>)}
+                  </div>}
+                </div>
+              </article>;
+            })}
+          </div>)}
+        </section>
+
+        <aside className="loan-show-sidebar">
+          <section className="loan-show-panel">
+            <div className="loan-side-heading"><span><Users size={17} /></span><div><h2>Recipients</h2><p>People receiving this request</p></div></div>
+            <div className="loan-recipient-list">
+              {recipients.length === 0 && <p className="loan-side-empty">No recipients added.</p>}
+              {recipients.map(contact => <div className="loan-recipient" key={contact.id}><span>{contact.name.charAt(0).toUpperCase()}</span><div><strong>{contact.name}</strong><small>{contact.email}</small></div></div>)}
+            </div>
+            {addableContacts.length > 0 && <div className="loan-add-recipients">
+              <label>Add contacts
+                <select multiple value={selectedContactIds} onChange={(event) => setSelectedContactIds(Array.from(event.target.selectedOptions).map((option) => option.value))}>
+                  {addableContacts.map(contact => <option key={contact.id} value={contact.id}>{contact.name} · {contact.email}</option>)}
+                </select>
+              </label>
+              <button onClick={addContacts} disabled={selectedContactIds.length === 0}><Users size={15} /> Add selected</button>
+            </div>}
+          </section>
+
+          <section className="loan-show-panel">
+            <div className="loan-side-heading"><span><Link2 size={17} /></span><div><h2>Client portal</h2><p>Secure document upload link</p></div></div>
+            {portalUrl ? <><code className="loan-portal-url">{portalUrl}</code><Link className="loan-portal-open" to={portalUrl.replace(window.location.origin, '')}><ExternalLink size={15} /> Open client portal</Link></> : <p className="loan-side-empty">The portal link will be available when this loan is ready.</p>}
+          </section>
+        </aside>
+      </div>
+
+      <section className="loan-show-panel loan-activity-panel">
+        <div className="loan-panel-heading"><div><span>History</span><h2>Activity</h2></div><Activity size={20} /></div>
+        {sortedAuditEvents.length === 0 && <div className="loan-show-empty">No activity recorded yet.</div>}
+        <div className="loan-activity-list">{sortedAuditEvents.map(event => <div className="loan-activity" key={event.id}>
+          <i /><div><strong>{formatAuditEventText(event)}</strong><p>by {event.actor_email || 'unknown actor'}</p></div><time>{new Date(event.created_at).toLocaleString()}</time>
+        </div>)}</div>
+      </section>
     </div>
   </section>;
 }
