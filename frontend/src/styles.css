@@ -95,6 +95,65 @@ input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="
 .client-header img { max-height: 56px; max-width: 220px; object-fit: contain; margin-bottom: 12px; }
 code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px; border-radius: 10px; color: #29384f; }
 
+/* Company and contacts workspaces */
+.workspace-page { min-height: calc(100vh - 68px); margin: -34px; padding: 64px 52px 90px; position: relative; overflow: hidden; color: #1d1833; background: #fbfaff; }
+.workspace-page::before { content: ""; position: absolute; width: 680px; height: 680px; right: -360px; top: -330px; border: 1px solid rgba(119,71,255,.1); border-radius: 50%; box-shadow: 0 0 0 75px rgba(119,71,255,.025), 0 0 0 150px rgba(119,71,255,.018); pointer-events: none; }
+.workspace-orb { width: 290px; height: 290px; position: absolute; right: 4%; top: 35px; border-radius: 50%; background: rgba(175,139,255,.16); filter: blur(72px); pointer-events: none; }
+.workspace-hero, .workspace-tabs, .workspace-panel, .company-invite-grid, .contacts-grid { max-width: 1100px; margin-inline: auto; position: relative; z-index: 1; }
+.workspace-hero { min-height: 250px; display: flex; align-items: center; justify-content: space-between; gap: 55px; }
+.workspace-hero h1 { margin: 20px 0 15px; color: #17132d; font-size: clamp(42px, 5vw, 60px); line-height: 1; letter-spacing: -.06em; }
+.workspace-hero h1 span { color: #7544ed; }
+.workspace-hero p { max-width: 600px; margin: 0; color: #6b6679; font-size: 16px; line-height: 1.7; }
+.workspace-hero-icon { width: 82px; height: 82px; flex: 0 0 auto; display: grid; place-items: center; color: #7849df; border: 1px solid #dfd3f2; border-radius: 24px; background: rgba(242,236,252,.9); box-shadow: 0 20px 45px rgba(82,52,142,.12); transform: rotate(4deg); }
+.workspace-tabs { width: fit-content; margin: 6px auto 18px; padding: 5px; display: flex; gap: 4px; border: 1px solid #e4deec; border-radius: 14px; background: rgba(255,255,255,.82); box-shadow: 0 9px 25px rgba(50,33,91,.05); }
+.workspace-tabs button { min-height: 39px; padding: 0 14px; display: inline-flex; align-items: center; gap: 7px; color: #7b7487; border: 0; border-radius: 10px; background: transparent; font-size: 10px; font-weight: 800; cursor: pointer; }
+.workspace-tabs button.active { color: #6840c6; background: #eee7fb; box-shadow: 0 4px 12px rgba(100,65,180,.09); }
+.workspace-panel { overflow: hidden; border: 1px solid #e8e3f0; border-radius: 23px; background: rgba(255,255,255,.95); box-shadow: 0 22px 60px rgba(50,33,91,.075); }
+.workspace-panel-heading { min-height: 91px; padding: 21px 26px; display: flex; align-items: center; justify-content: space-between; gap: 28px; border-bottom: 1px solid #eeeaf3; }
+.workspace-panel-heading > div > span { color: #7546db; font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.workspace-panel-heading h2 { margin: 5px 0 0; color: #28213b; font-size: 22px; letter-spacing: -.04em; }
+.workspace-panel-heading > p { max-width: 330px; margin: 0; color: #8b8496; font-size: 10px; line-height: 1.55; }
+.company-form-grid { padding: 25px 26px 4px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+.company-form-grid label, .workspace-form-body label { color: #625b70; font-size: 10px; font-weight: 800; }
+.company-form-grid input, .workspace-form-body input, .workspace-form-body select { height: 43px; color: #443d51; border-color: #e0dae8; border-radius: 11px; background: #fdfcfe; font-size: 11px; transition: border-color .2s ease, box-shadow .2s ease; }
+.company-form-grid input:focus, .workspace-form-body input:focus, .workspace-form-body select:focus { outline: none; border-color: #a98ae9; box-shadow: 0 0 0 3px rgba(117,68,237,.1); }
+.company-field-wide { grid-column: 1 / -1; }
+.company-brand-fields { margin: 24px 26px 0; padding: 22px; border-radius: 16px; background: #faf8fd; }
+.company-brand-fields > div:first-child > span { color: #4f475e; font-size: 11px; font-weight: 850; }
+.company-brand-fields > div:first-child > p { margin: 4px 0 0; color: #918a9a; font-size: 9px; }
+.company-brand-fields .company-form-grid { padding: 18px 0 0; }
+.workspace-form-actions { padding: 22px 26px 26px; display: flex; justify-content: flex-end; }
+.workspace-primary { min-height: 43px; padding: 0 17px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: white; border: 0; border-radius: 12px; background: linear-gradient(135deg, #7040e8, #8e54f3); box-shadow: 0 11px 24px rgba(111,60,225,.22); font-size: 11px; font-weight: 800; cursor: pointer; }
+.workspace-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 29px rgba(111,60,225,.29); }
+.workspace-primary:disabled { opacity: .65; cursor: wait; }
+.workspace-panel > .error, .workspace-panel > .workspace-success { margin: 19px 26px 0; }
+.workspace-success { padding: 11px 13px; display: flex; align-items: center; gap: 8px; color: #217257; border: 1px solid #cce8dd; border-radius: 10px; background: #ebf8f3; font-size: 10px; font-weight: 750; }
+.company-invite-grid { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start; }
+.workspace-form-body { padding: 23px 25px 0; display: grid; gap: 16px; }
+.workspace-form-body label > span { display: flex; align-items: center; gap: 6px; }
+.workspace-form-body label > span svg { color: #8257df; }
+.workspace-table-panel { overflow-x: auto; }
+.workspace-table-panel table { min-width: 580px; }
+.workspace-table-panel th { padding: 13px 20px; color: #9993a5; background: #fcfbfd; border-bottom-color: #eeeaf3; font-size: 9px; letter-spacing: .09em; }
+.workspace-table-panel td { padding: 15px 20px; color: #625d6d; border-bottom-color: #f0edf4; font-size: 11px; }
+.workspace-table-panel tbody tr:last-child td { border-bottom: 0; }
+.workspace-table-panel tbody tr:hover { background: #fcfaff; }
+.workspace-table-panel td select { min-width: 110px; padding: 7px 9px; color: #5d536d; border-color: #e1dae9; font-size: 10px; }
+.workspace-empty { min-height: 140px; margin: 0; padding: 25px; display: flex; align-items: center; justify-content: center; color: #918a9b; font-size: 10px; text-align: center; }
+.contacts-grid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; align-items: start; }
+.contact-form .workspace-form-actions { justify-content: stretch; }
+.contact-form .workspace-primary { width: 100%; }
+.contacts-directory td a { color: #7045d2; font-weight: 700; }
+.contact-identity { display: flex; align-items: center; gap: 9px; }
+.contact-identity > span { width: 30px; height: 30px; flex: 0 0 auto; display: grid; place-items: center; color: #7040d3; border-radius: 9px; background: #eae2f8; font-size: 10px; font-weight: 850; }
+.contact-identity strong { color: #443d52; font-size: 11px; }
+.contacts-empty { min-height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #918a9b; }
+.contacts-empty > div { width: 47px; height: 47px; margin-bottom: 3px; display: grid; place-items: center; color: #7546db; border-radius: 14px; background: #f0eaff; }
+.contacts-empty strong { color: #40384e; font-size: 13px; }
+.contacts-empty span { font-size: 9px; }
+.workspace-state { min-height: calc(100vh - 68px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 13px; color: #766f82; background: #fbfaff; font-size: 11px; }
+.workspace-state-icon { width: 49px; height: 49px; display: grid; place-items: center; color: white; border-radius: 14px; background: linear-gradient(135deg, #7947ff, #a760ff); box-shadow: 0 11px 25px rgba(119,68,255,.24); }
+
 /* Public marketing page */
 .marketing-page { min-height: 100vh; overflow: hidden; color: #17142e; background: #fbfaff; }
 .marketing-nav { width: min(1180px, calc(100% - 48px)); height: 86px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 32px; position: relative; z-index: 10; }
@@ -407,6 +466,10 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
   .sidebar-nav > a { justify-content: center; }
   .sidebar-nav > a.active::after { display: none; }
   .sidebar-account { margin-top: 16px; padding: 13px 2px 0; }
+  .workspace-page { margin: -34px; padding: 55px 34px 75px; }
+  .workspace-hero { min-height: 235px; }
+  .company-invite-grid, .contacts-grid { grid-template-columns: 1fr; }
+  .company-invite-form, .contact-form { max-width: none; }
   .stats-grid, .grid-two, .request-row, .form-grid-two, .detail-grid { grid-template-columns: 1fr; }
   .page-header { align-items: flex-start; flex-direction: column; }
   .marketing-nav { grid-template-columns: 1fr auto; }
@@ -437,6 +500,19 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 @media (max-width: 560px) {
   .sidebar-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sidebar-nav > a { justify-content: flex-start; }
+  .workspace-page { margin: -34px; padding: 45px 18px 65px; }
+  .workspace-hero { min-height: 270px; align-items: flex-start; flex-direction: column; justify-content: center; gap: 24px; }
+  .workspace-hero h1 { font-size: 42px; }
+  .workspace-hero p { font-size: 14px; }
+  .workspace-hero-icon { width: 64px; height: 64px; border-radius: 19px; }
+  .workspace-tabs { width: 100%; }
+  .workspace-tabs button { flex: 1; padding-inline: 8px; }
+  .workspace-panel-heading { padding: 19px; align-items: flex-start; flex-direction: column; gap: 8px; }
+  .company-form-grid { grid-template-columns: 1fr; padding: 21px 19px 4px; }
+  .company-field-wide { grid-column: auto; }
+  .company-brand-fields { margin: 20px 19px 0; padding: 18px; }
+  .workspace-form-actions { padding: 20px 19px 22px; }
+  .workspace-primary { width: 100%; }
   .marketing-nav, .marketing-hero, .marketing-features, .marketing-focus, .marketing-bottom-cta, .marketing-footer { width: min(100% - 32px, 1180px); }
   .marketing-nav { height: 74px; }
   .marketing-brand { font-size: 16px; }
