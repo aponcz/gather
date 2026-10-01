@@ -140,9 +140,16 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 .workspace-table-panel tbody tr:hover { background: #fcfaff; }
 .workspace-table-panel td select { min-width: 110px; padding: 7px 9px; color: #5d536d; border-color: #e1dae9; font-size: 10px; }
 .workspace-empty { min-height: 140px; margin: 0; padding: 25px; display: flex; align-items: center; justify-content: center; color: #918a9b; font-size: 10px; text-align: center; }
-.contacts-grid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; align-items: start; }
-.contact-form .workspace-form-actions { justify-content: stretch; }
+.contacts-grid { display: grid; grid-template-columns: 350px minmax(0, 1fr); gap: 9px; align-items: start; }
+.contacts-grid > .workspace-panel { width: 100%; max-width: none; margin-inline: 0; }
+.contact-form, .contacts-directory { min-width: 0; }
+.contact-form::before, .contacts-directory::before { content: ""; height: 3px; position: absolute; inset: 0 0 auto; background: linear-gradient(90deg, #7040e8, #a66dfa); }
+.contact-form .workspace-panel-heading, .contacts-directory .workspace-panel-heading { padding-inline: 20px; }
+.contact-form .workspace-form-body { padding: 25px 20px 2px; gap: 18px; }
+.contact-form .workspace-form-actions { padding-inline: 20px; justify-content: stretch; }
 .contact-form .workspace-primary { width: 100%; }
+.contacts-directory th, .contacts-directory td { padding-inline: 16px; }
+.contacts-directory .workspace-panel-heading > p { padding: 6px 9px; color: #7045d2; border-radius: 999px; background: #f0eaff; font-weight: 800; }
 .contacts-directory td a { color: #7045d2; font-weight: 700; }
 .contact-cancel-edit { width: 31px; height: 31px; padding: 0; display: grid; place-items: center; color: #756d80; border: 0; border-radius: 9px; background: #f1edf6; cursor: pointer; }
 .contact-identity { display: flex; align-items: center; gap: 9px; }
@@ -502,6 +509,7 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
   .workspace-page { margin: -34px; padding: 55px 34px 75px; }
   .workspace-hero { min-height: 235px; }
   .company-invite-grid, .contacts-grid { grid-template-columns: 1fr; }
+  .contacts-grid { gap: 14px; }
   .company-invite-form, .contact-form { max-width: none; }
   .stats-grid, .grid-two, .request-row, .form-grid-two, .detail-grid { grid-template-columns: 1fr; }
   .page-header { align-items: flex-start; flex-direction: column; }
