@@ -167,6 +167,70 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 .marketing-footer p { margin: 0; }
 .marketing-footer > span { justify-self: end; }
 
+/* Client document portal */
+.client-portal { --client-accent: #7544ed; min-height: 100vh; position: relative; overflow: hidden; color: #1d1833; background: #fbfaff; }
+.client-portal::before { content: ""; position: absolute; width: 760px; height: 760px; right: -390px; top: -340px; border: 1px solid rgba(119, 71, 255, .1); border-radius: 50%; box-shadow: 0 0 0 85px rgba(119, 71, 255, .025), 0 0 0 170px rgba(119, 71, 255, .018); pointer-events: none; }
+.client-portal-orb { position: absolute; border-radius: 50%; pointer-events: none; filter: blur(70px); }
+.client-portal-orb-one { width: 310px; height: 310px; right: 8%; top: 90px; background: rgba(175, 139, 255, .18); }
+.client-portal-orb-two { width: 240px; height: 240px; left: 7%; top: 430px; background: rgba(76, 208, 183, .11); }
+.client-portal-nav { width: min(1120px, calc(100% - 48px)); height: 86px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; }
+.client-secure { padding: 9px 14px; display: inline-flex; align-items: center; gap: 7px; color: #5a746c; border: 1px solid #dfe9e5; border-radius: 999px; background: rgba(255,255,255,.72); font-size: 12px; font-weight: 750; }
+.client-portal-main { width: min(1040px, calc(100% - 48px)); margin: 0 auto; padding: 70px 0 100px; position: relative; z-index: 1; }
+.client-portal-hero { display: grid; grid-template-columns: 1fr 330px; gap: 70px; align-items: center; margin-bottom: 65px; }
+.client-company-logo { display: block; max-width: 210px; max-height: 54px; margin: 24px 0 17px; object-fit: contain; object-position: left center; }
+.client-hero-copy h1 { max-width: 650px; margin: 22px 0 15px; color: #17132d; font-size: clamp(39px, 5vw, 59px); line-height: 1.04; letter-spacing: -.055em; }
+.client-company-logo + h1 { margin-top: 0; }
+.client-hero-message { max-width: 650px; margin: 0; color: #6a6579; font-size: 17px; line-height: 1.7; }
+.client-loan-meta { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; }
+.client-loan-meta span { padding: 8px 11px; display: inline-flex; align-items: center; gap: 7px; color: #625d71; border: 1px solid #e5dfed; border-radius: 10px; background: rgba(255,255,255,.7); font-size: 12px; font-weight: 750; }
+.client-loan-meta svg { color: var(--client-accent); }
+.client-progress-card { padding: 27px; border: 1px solid rgba(213,205,232,.9); border-radius: 22px; background: rgba(255,255,255,.9); box-shadow: 0 25px 70px rgba(52,35,96,.14); backdrop-filter: blur(12px); }
+.client-progress-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.client-progress-top > div:first-child { display: grid; gap: 5px; }
+.client-progress-top span { color: #8a8496; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.client-progress-top strong { color: #2c263e; font-size: 20px; letter-spacing: -.025em; }
+.client-progress-icon { width: 48px; height: 48px; display: grid; place-items: center; color: var(--client-accent); border-radius: 14px; background: #f0eaff; }
+.client-progress-icon.complete { color: #278667; background: #e4f6ef; }
+.client-progress-track { height: 8px; margin: 24px 0 13px; overflow: hidden; border-radius: 999px; background: #ede9f4; }
+.client-progress-track div { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--client-accent), #a26df9); transition: width .25s ease; }
+.client-progress-card p { margin: 0; color: #777184; font-size: 12px; }
+.client-progress-card p strong { color: #50485f; }
+.client-request-panel { padding: 42px; border: 1px solid #e8e3f0; border-radius: 27px; background: rgba(255,255,255,.94); box-shadow: 0 24px 65px rgba(50,33,91,.08); }
+.client-panel-heading { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: end; padding-bottom: 29px; border-bottom: 1px solid #eeeaf3; }
+.client-panel-heading > div > span { color: var(--client-accent); font-size: 11px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+.client-panel-heading h2 { margin: 7px 0 0; color: #211b36; font-size: 29px; letter-spacing: -.04em; }
+.client-panel-heading p { margin: 0; color: #777183; font-size: 13px; line-height: 1.65; }
+.client-request-error { margin-top: 22px; }
+.client-section-group { margin-top: 33px; }
+.client-section-group > h3 { margin: 0 0 12px; color: #817a8f; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; }
+.client-request-list { display: grid; gap: 11px; }
+.client-request-card { padding: 18px; display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 15px; align-items: start; border: 1px solid #ece7f2; border-radius: 16px; background: #fff; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.client-request-card:hover { border-color: #d9cdec; box-shadow: 0 9px 26px rgba(54,38,91,.07); transform: translateY(-1px); }
+.client-request-card.has-file { border-color: #dcece6; background: linear-gradient(105deg, #fbfefd, #fff 45%); }
+.client-request-status { width: 40px; height: 40px; display: grid; place-items: center; color: #7650ce; border-radius: 12px; background: #f0eaff; }
+.client-request-card.has-file .client-request-status { color: #258365; background: #e4f6ef; }
+.client-request-copy { min-width: 0; padding-top: 2px; }
+.client-request-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.client-request-title strong { color: #302a40; font-size: 14px; }
+.client-request-title > span { padding: 3px 6px; color: #7b50df; border-radius: 999px; background: #f0eaff; font-size: 8px; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.client-request-copy > p { margin: 5px 0 0; color: #878190; font-size: 12px; line-height: 1.5; }
+.client-upload-control { align-self: center; }
+.client-upload-control input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.client-upload-control label { min-width: 125px; padding: 10px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: white; border-radius: 11px; background: linear-gradient(135deg, #7040e8, #8e54f3); box-shadow: 0 8px 18px rgba(111,60,225,.18); font-size: 11px; font-weight: 800; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+.client-upload-control label:hover { transform: translateY(-1px); box-shadow: 0 11px 23px rgba(111,60,225,.25); }
+.client-upload-control input:focus-visible + label { outline: 3px solid rgba(117,68,237,.25); outline-offset: 2px; }
+.client-upload-control input:disabled + label { opacity: .65; cursor: wait; }
+.client-file-list { margin-top: 13px; display: grid; gap: 7px; }
+.client-uploaded-file { min-width: 0; padding: 9px 10px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px; align-items: center; border-radius: 10px; color: #298165; background: #f1faf7; }
+.client-uploaded-file > span:first-of-type { overflow: hidden; color: #4f5960; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.client-uploaded-file button { padding: 5px 7px; display: inline-flex; align-items: center; gap: 5px; color: #6540bd; border: 0; border-radius: 7px; background: #ebe3fa; font-size: 10px; font-weight: 800; cursor: pointer; }
+.client-portal-footer { width: min(1040px, calc(100% - 48px)); min-height: 90px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 7px; color: #878190; border-top: 1px solid #e7e2ed; font-size: 11px; }
+.client-portal-footer svg { color: #538173; }
+.client-portal-state { min-height: 100vh; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #6d667c; background: #fbfaff; }
+.client-state-mark { width: 52px; height: 52px; display: grid; place-items: center; color: white; border-radius: 15px; background: linear-gradient(135deg, #7947ff, #a760ff); box-shadow: 0 12px 27px rgba(119,68,255,.25); }
+.client-portal-state .error { max-width: 520px; }
+.client-portal-state a { color: #7040e8; font-weight: 800; }
+
 @media (prefers-reduced-motion: no-preference) {
   .product-preview { animation: preview-in .7s cubic-bezier(.2,.7,.2,1) both; }
   .marketing-hero-copy { animation: hero-in .65s .08s cubic-bezier(.2,.7,.2,1) both; }
@@ -193,6 +257,9 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
   .marketing-focus { padding: 48px 36px; grid-template-columns: 1fr; gap: 35px; }
   .marketing-footer { grid-template-columns: 1fr auto; }
   .marketing-footer p { display: none; }
+  .client-portal-main { padding-top: 48px; }
+  .client-portal-hero { grid-template-columns: 1fr; gap: 35px; }
+  .client-progress-card { max-width: 520px; }
 }
 @media (max-width: 560px) {
   .marketing-nav, .marketing-hero, .marketing-features, .marketing-focus, .marketing-bottom-cta, .marketing-footer { width: min(100% - 32px, 1180px); }
@@ -216,4 +283,22 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
   .marketing-focus { padding: 40px 25px; margin-bottom: 90px; }
   .marketing-bottom-cta { padding-bottom: 90px; }
   .marketing-footer { min-height: 90px; }
+  .client-portal-nav, .client-portal-main, .client-portal-footer { width: min(100% - 30px, 1040px); }
+  .client-portal-nav { height: 74px; }
+  .client-secure { padding: 8px; }
+  .client-secure span { display: none; }
+  .client-portal-main { padding: 40px 0 65px; }
+  .client-portal-hero { margin-bottom: 38px; }
+  .client-hero-copy h1 { font-size: 38px; }
+  .client-hero-message { font-size: 15px; }
+  .client-progress-card { padding: 21px; }
+  .client-request-panel { padding: 24px 17px; border-radius: 21px; }
+  .client-panel-heading { grid-template-columns: 1fr; gap: 12px; }
+  .client-request-card { grid-template-columns: 38px minmax(0, 1fr); padding: 15px; }
+  .client-request-status { width: 36px; height: 36px; }
+  .client-upload-control { grid-column: 1 / -1; }
+  .client-upload-control label { width: 100%; }
+  .client-uploaded-file { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .client-uploaded-file .badge { display: none; }
+  .client-uploaded-file button span { display: none; }
 }
