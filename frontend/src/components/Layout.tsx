@@ -51,7 +51,7 @@ export function Layout() {
         <nav className="sidebar-nav">
           <span className="sidebar-label">Manage</span>
           <NavLink to="/loans" end><Files size={17} /><span>Loans</span></NavLink>
-          <NavLink to="/loans/new"><Plus size={17} /><span>New loan</span></NavLink>
+          {!import.meta.env.PROD && <NavLink to="/loans/new"><Plus size={17} /><span>New loan</span></NavLink>}
           <NavLink to="/contacts"><ContactRound size={17} /><span>Contacts</span></NavLink>
           <NavLink to="/company"><Building2 size={17} /><span>Company</span></NavLink>
           {!import.meta.env.PROD && <NavLink to="/client"><ShieldCheck size={17} /><span>Client portal</span></NavLink>}

@@ -37,7 +37,7 @@ export function App() {
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/company" element={<Company />} />
             <Route path="/switch-company" element={<SwitchCompany />} />
-            <Route path="/loans/new" element={<NewLoan />} />
+            <Route path="/loans/new" element={import.meta.env.PROD ? <Navigate to="/loans" replace /> : <NewLoan />} />
             <Route path="/loans/:id/edit" element={<EditLoan />} />
             <Route path="/loans/:id" element={<LoanDetail />} />
             <Route element={<AdminOnlyRoute />}>

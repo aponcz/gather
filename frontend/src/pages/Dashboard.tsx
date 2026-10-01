@@ -13,6 +13,7 @@ function formatCurrencyFromCents(value?: number | null) {
 }
 
 export function Dashboard() {
+  const canCreateLoans = !import.meta.env.PROD;
   const [loans, setLoans] = useState<Loan[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +41,7 @@ export function Dashboard() {
           <h1>Every loan.<br /><span>Clearly in view.</span></h1>
           <p>Track every request, spot what needs attention, and keep client documents moving forward.</p>
         </div>
-        <Link className="loans-create-button" to="/loans/new"><span><Plus size={18} /> Create loan</span><ArrowRight size={18} /></Link>
+        {canCreateLoans && <Link className="loans-create-button" to="/loans/new"><span><Plus size={18} /> Create loan</span><ArrowRight size={18} /></Link>}
       </header>
 
       {error && <div className="error loans-error" role="alert">{error}</div>}
@@ -64,7 +65,7 @@ export function Dashboard() {
               <tr><td colSpan={7}><div className="loans-empty"><FileCheck2 size={25} /><span>Loading loans…</span></div></td></tr>
             ) : loans.length === 0 ? (
               <tr>
-                <td colSpan={7}><div className="loans-empty"><div className="loans-empty-icon"><FileCheck2 size={25} /></div><strong>No loans yet</strong><span>Create your first loan to start collecting documents.</span><Link to="/loans/new">Create loan</Link></div></td>
+                <td colSpan={7}><div className="loans-empty"><div className="loans-empty-icon"><FileCheck2 size={25} /></div><strong>No loans yet</strong><span>{canCreateLoans ? 'Create your first loan to start collecting documents.' : 'There are no loan requests in this workspace.'}</span>{canCreateLoans && <Link to="/loans/new">Create loan</Link>}</div></td>
               </tr>
             ) : (
               loans.map((loan) => {
