@@ -1,13 +1,7 @@
 class StorageService
   def initialize
     @bucket = ENV.fetch("S3_BUCKET", "gather")
-    @client = Aws::S3::Client.new(
-      region: ENV.fetch("AWS_REGION", "us-east-1"),
-      endpoint: ENV["S3_ENDPOINT"],
-      force_path_style: ENV.fetch("S3_FORCE_PATH_STYLE", "true") == "true",
-      access_key_id: ENV.fetch("AWS_ACCESS_KEY_ID", "minioadmin"),
-      secret_access_key: ENV.fetch("AWS_SECRET_ACCESS_KEY", "minioadmin")
-    )
+    @client = Aws::S3::Client.new(**client_options(endpoint: ENV["S3_ENDPOINT"]))
     @resource = Aws::S3::Resource.new(client: @client)
   end
 
@@ -28,12 +22,20 @@ class StorageService
   private
 
   def download_client
+    return @client if Rails.env.production?
+
     internal_endpoint = ENV["S3_INTERNAL_ENDPOINT"].presence
     return @client unless internal_endpoint
 
-    @download_client ||= Aws::S3::Client.new(
-      region: ENV.fetch("AWS_REGION", "us-east-1"),
-      endpoint: internal_endpoint,
+    @download_client ||= Aws::S3::Client.new(**client_options(endpoint: internal_endpoint))
+  end
+
+  def client_options(endpoint:)
+    options = { region: ENV.fetch("AWS_REGION", "us-east-1") }
+    return options if Rails.env.production?
+
+    options.merge(
+      endpoint: endpoint,
       force_path_style: ENV.fetch("S3_FORCE_PATH_STYLE", "true") == "true",
       access_key_id: ENV.fetch("AWS_ACCESS_KEY_ID", "minioadmin"),
       secret_access_key: ENV.fetch("AWS_SECRET_ACCESS_KEY", "minioadmin")

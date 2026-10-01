@@ -89,6 +89,12 @@ secrets. Email delivery uses SendGrid SMTP and requires `SENDGRID_USERNAME` and
 needs database connectivity and migration permissions. Use migrations compatible
 with the previous version while ECS performs a rolling update.
 
+Production S3 access uses the AWS SDK credential provider chain. On ECS, assign a
+task role with the required bucket permissions and set `S3_BUCKET` and
+`AWS_REGION`. Do not set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+`S3_ENDPOINT`, `S3_INTERNAL_ENDPOINT`, or `S3_FORCE_PATH_STYLE` in production.
+Those settings are only used by local environments backed by MinIO.
+
 ## Email delivery
 
 Production sends application email through SendGrid SMTP at
