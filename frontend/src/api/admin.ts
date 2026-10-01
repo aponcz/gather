@@ -101,6 +101,15 @@ export function listLoans() {
   return apiFetch<Loan[]>('/api/v1/loans');
 }
 
+export function importProTextLoans() {
+  return apiFetch<{
+    fetched_count: number;
+    created_count: number;
+    skipped_count: number;
+    loans: Array<{ id: number; title: string }>;
+  }>('/api/v1/loans/import_loans', { method: 'POST' });
+}
+
 export function getLoan(id: string | number) {
   return apiFetch<Loan>(`/api/v1/loans/${id}`);
 }

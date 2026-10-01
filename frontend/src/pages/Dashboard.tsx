@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Clock3, FileCheck2, FileText, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Clock3, CloudDownload, FileCheck2, FileText, Plus, Sparkles } from 'lucide-react';
 import * as adminApi from '../api/admin';
 import { Loan } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
@@ -17,6 +17,8 @@ export function Dashboard() {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ fetched: number; created: number; skipped: number } | null>(null);
 
   function getPercentComplete(loan: Loan) {
     const totalRequestedDocuments = loan.request_items?.length || 0;
@@ -28,6 +30,21 @@ export function Dashboard() {
   useEffect(() => {
     adminApi.listLoans().then(setLoans).catch((err) => setError(err.message)).finally(() => setLoading(false));
   }, []);
+
+  async function importLoans() {
+    setImporting(true);
+    setError(null);
+    setImportResult(null);
+    try {
+      const result = await adminApi.importProTextLoans();
+      setImportResult({ fetched: result.fetched_count, created: result.created_count, skipped: result.skipped_count });
+      setLoans(await adminApi.listLoans());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not import loans from ProText');
+    } finally {
+      setImporting(false);
+    }
+  }
 
   const inProgress = loans.filter((loan) => ['sent', 'viewed'].includes(loan.status)).length;
   const completed = loans.filter((loan) => loan.status === 'completed').length;
@@ -41,10 +58,14 @@ export function Dashboard() {
           <h1>Every loan.<br /><span>Clearly in view.</span></h1>
           <p>Track every request, spot what needs attention, and keep client documents moving forward.</p>
         </div>
-        {canCreateLoans && <Link className="loans-create-button" to="/loans/new"><span><Plus size={18} /> Create loan</span><ArrowRight size={18} /></Link>}
+        <div className="loans-hero-actions">
+          <button className="loans-import-button" type="button" onClick={() => void importLoans()} disabled={importing}><CloudDownload size={18} /><span>{importing ? 'Importing…' : 'Import from ProText'}</span></button>
+          {canCreateLoans && <Link className="loans-create-button" to="/loans/new"><span><Plus size={18} /> Create loan</span><ArrowRight size={18} /></Link>}
+        </div>
       </header>
 
       {error && <div className="error loans-error" role="alert">{error}</div>}
+      {importResult && <div className="loans-import-result" role="status"><Check size={17} /><span><strong>Import complete.</strong> {importResult.created} created, {importResult.skipped} skipped from {importResult.fetched} fetched.</span></div>}
 
       <div className="loans-stats" aria-label="Loan summary">
         <article><div className="loans-stat-icon purple"><FileText size={21} /></div><div><strong>{loans.length}</strong><span>Total loans</span></div></article>
