@@ -15,12 +15,34 @@ label { display: grid; gap: 7px; font-weight: 650; color: #29384f; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 14px; border-bottom: 1px solid #ecf0f6; }
 th { color: #68758a; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
-.app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-.sidebar { background: #111827; color: white; padding: 24px; display: flex; flex-direction: column; gap: 26px; }
-.brand { color: white; font-size: 18px; font-weight: 800; display: flex; gap: 10px; align-items: center; }
-.sidebar nav { display: grid; gap: 8px; }
-.sidebar nav a, .ghost { color: #d8deea; padding: 10px 12px; border-radius: 10px; border: 0; background: transparent; text-align: left; display: flex; gap: 8px; align-items: center; cursor: pointer; }
-.sidebar nav a.active, .sidebar nav a:hover, .ghost:hover { background: #243047; color: #fff; }
+.app-shell { display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 100vh; }
+.sidebar { min-height: 100vh; padding: 25px 18px 18px; position: sticky; top: 0; align-self: start; display: flex; flex-direction: column; color: #27213a; border-right: 1px solid #e8e3f0; background: linear-gradient(180deg, #fdfcff 0%, #faf8fd 100%); box-shadow: 10px 0 35px rgba(50,33,91,.035); }
+.sidebar-brand { padding: 0 8px; display: flex; align-items: center; gap: 10px; color: #17142e; font-size: 18px; font-weight: 650; letter-spacing: -.03em; }
+.sidebar-brand strong { font-weight: 850; }
+.sidebar-brand-mark { width: 39px; height: 39px; display: grid; place-items: center; color: white; border-radius: 12px; background: linear-gradient(135deg, #7947ff, #a760ff); box-shadow: 0 8px 20px rgba(119,68,255,.25); }
+.sidebar-label { display: block; padding: 0 9px; color: #9a93a5; font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.sidebar-workspace { margin-top: 30px; }
+.sidebar-company-select, .sidebar-company-name { min-height: 48px; margin-top: 8px; padding: 0 11px; display: flex; align-items: center; gap: 9px; color: #7446d7; border: 1px solid #e2d9f2; border-radius: 13px; background: #f3eefc; }
+.sidebar-company-select select { min-width: 0; padding: 0 20px 0 0; color: #453d55; border: 0; background: transparent; font-size: 11px; font-weight: 800; }
+.sidebar-company-select select:focus { outline: none; }
+.sidebar-company-name strong { overflow: hidden; color: #453d55; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-switching { margin: 6px 9px 0; color: #81798e; font-size: 9px; }
+.sidebar-nav { margin-top: 31px; display: grid; gap: 5px; }
+.sidebar-nav > a { min-height: 43px; padding: 0 11px; display: flex; align-items: center; gap: 11px; position: relative; color: #6d6679; border-radius: 11px; font-size: 11px; font-weight: 750; transition: color .18s ease, background .18s ease, transform .18s ease; }
+.sidebar-nav > a svg { color: #91899e; transition: color .18s ease; }
+.sidebar-nav > a:hover { color: #4a3e5e; background: #f3eff9; transform: translateX(2px); }
+.sidebar-nav > a.active { color: #6840c6; background: #eee7fb; }
+.sidebar-nav > a.active svg { color: #7545dd; }
+.sidebar-nav > a.active::after { content: ""; width: 3px; height: 19px; position: absolute; right: -18px; border-radius: 3px 0 0 3px; background: #7848e4; }
+.sidebar-admin-label { margin-top: 21px; margin-bottom: 3px; }
+.sidebar-account { min-width: 0; margin-top: auto; padding: 15px 8px 1px; display: grid; grid-template-columns: 34px minmax(0, 1fr) 30px; gap: 9px; align-items: center; border-top: 1px solid #e9e4ee; }
+.sidebar-avatar { width: 34px; height: 34px; display: grid; place-items: center; color: #6d42ca; border-radius: 10px; background: #ece4fa; font-size: 11px; font-weight: 850; }
+.sidebar-user { min-width: 0; display: grid; gap: 2px; }
+.sidebar-user strong, .sidebar-user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user strong { color: #3e374d; font-size: 10px; }
+.sidebar-user span { color: #9992a1; font-size: 8px; }
+.sidebar-account button { width: 30px; height: 30px; padding: 0; display: grid; place-items: center; color: #8d8597; border: 0; border-radius: 8px; background: transparent; cursor: pointer; }
+.sidebar-account button:hover { color: #7144d2; background: #eee8f8; }
 .content { padding: 34px; max-width: 1280px; width: 100%; }
 .card { background: white; border: 1px solid #e7ebf3; border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(31, 42, 68, .06); }
 .page-header { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin-bottom: 22px; }
@@ -377,7 +399,14 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 
 @media (max-width: 860px) {
   .app-shell { grid-template-columns: 1fr; }
-  .sidebar { position: static; }
+  .sidebar { min-height: auto; padding: 17px; position: static; border-right: 0; border-bottom: 1px solid #e8e3f0; box-shadow: 0 8px 28px rgba(50,33,91,.04); }
+  .sidebar-brand { padding-inline: 2px; }
+  .sidebar-workspace { margin-top: 17px; }
+  .sidebar-nav { margin-top: 17px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .sidebar-nav > .sidebar-label { display: none; }
+  .sidebar-nav > a { justify-content: center; }
+  .sidebar-nav > a.active::after { display: none; }
+  .sidebar-account { margin-top: 16px; padding: 13px 2px 0; }
   .stats-grid, .grid-two, .request-row, .form-grid-two, .detail-grid { grid-template-columns: 1fr; }
   .page-header { align-items: flex-start; flex-direction: column; }
   .marketing-nav { grid-template-columns: 1fr auto; }
@@ -406,6 +435,8 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
   .loan-show-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
+  .sidebar-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sidebar-nav > a { justify-content: flex-start; }
   .marketing-nav, .marketing-hero, .marketing-features, .marketing-focus, .marketing-bottom-cta, .marketing-footer { width: min(100% - 32px, 1180px); }
   .marketing-nav { height: 74px; }
   .marketing-brand { font-size: 16px; }
