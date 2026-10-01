@@ -153,6 +153,29 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 .contacts-empty span { font-size: 9px; }
 .workspace-state { min-height: calc(100vh - 68px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 13px; color: #766f82; background: #fbfaff; font-size: 11px; }
 .workspace-state-icon { width: 49px; height: 49px; display: grid; place-items: center; color: white; border-radius: 14px; background: linear-gradient(135deg, #7947ff, #a760ff); box-shadow: 0 11px 25px rgba(119,68,255,.24); }
+.switch-company-error { max-width: 1100px; margin: 0 auto 18px; position: relative; z-index: 1; }
+.switch-company-panel { max-width: 1100px; }
+.switch-company-grid { padding: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.switch-company-card { min-width: 0; min-height: 225px; padding: 20px; display: flex; flex-direction: column; border: 1px solid #e7e1ed; border-radius: 17px; background: #fdfcfe; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.switch-company-card:hover { transform: translateY(-2px); border-color: #d8caec; box-shadow: 0 13px 30px rgba(60,39,101,.08); }
+.switch-company-card.active { border-color: #cdb9f1; background: linear-gradient(145deg, #fbf9ff, #f2ecfc); box-shadow: inset 0 0 0 1px rgba(117,68,237,.06); }
+.switch-company-card-top { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.switch-company-mark { width: 46px; height: 46px; display: grid; place-items: center; color: #7546db; border-radius: 13px; background: #f0eaff; }
+.switch-company-card.active .switch-company-mark { color: white; background: linear-gradient(135deg, #7040e8, #9560f5); box-shadow: 0 8px 18px rgba(111,60,225,.2); }
+.switch-company-active { padding: 6px 8px; display: inline-flex; align-items: center; gap: 4px; color: #23765b; border-radius: 999px; background: #e3f5ee; font-size: 8px; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.switch-company-copy { margin: 20px 0 18px; }
+.switch-company-copy h3 { margin: 0 0 8px; overflow: hidden; color: #332c43; font-size: 17px; letter-spacing: -.025em; text-overflow: ellipsis; white-space: nowrap; }
+.switch-company-copy p { margin: 0; display: flex; align-items: center; gap: 6px; color: #8a8394; font-size: 10px; }
+.switch-company-copy svg { color: #8056dc; }
+.switch-company-card > button, .switch-company-current { min-height: 40px; margin-top: auto; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 10px; font-size: 10px; font-weight: 800; }
+.switch-company-card > button { color: white; border: 0; background: linear-gradient(135deg, #7040e8, #8e54f3); box-shadow: 0 9px 20px rgba(111,60,225,.2); cursor: pointer; }
+.switch-company-card > button:hover { box-shadow: 0 12px 25px rgba(111,60,225,.28); }
+.switch-company-card > button:disabled { opacity: .6; cursor: wait; }
+.switch-company-current { justify-content: center; color: #6840c6; background: rgba(232,222,249,.72); }
+.switch-company-empty { max-width: 1100px; min-height: 270px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #918a9b; text-align: center; }
+.switch-company-empty > div { width: 54px; height: 54px; display: grid; place-items: center; color: #7546db; border-radius: 16px; background: #f0eaff; }
+.switch-company-empty h2 { margin: 15px 0 6px; color: #3d354c; font-size: 18px; }
+.switch-company-empty p { margin: 0; font-size: 10px; }
 
 /* Public marketing page */
 .marketing-page { min-height: 100vh; overflow: hidden; color: #17142e; background: #fbfaff; }
@@ -513,6 +536,7 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
   .company-brand-fields { margin: 20px 19px 0; padding: 18px; }
   .workspace-form-actions { padding: 20px 19px 22px; }
   .workspace-primary { width: 100%; }
+  .switch-company-grid { grid-template-columns: 1fr; padding: 17px; }
   .marketing-nav, .marketing-hero, .marketing-features, .marketing-focus, .marketing-bottom-cta, .marketing-footer { width: min(100% - 32px, 1180px); }
   .marketing-nav { height: 74px; }
   .marketing-brand { font-size: 16px; }
