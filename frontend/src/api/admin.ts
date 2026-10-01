@@ -71,13 +71,6 @@ export function updateUserRole(id: number | string, role: 'god' | 'admin' | 'cus
   });
 }
 
-export function inviteCompanyMember(payload: { name: string; email: string; role: 'owner' | 'admin' | 'member' }) {
-  return apiFetch<CompanyMember>('/api/v1/company_members', {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
-}
-
 export function listCompanyMembers() {
   return apiFetch<CompanyMember[]>('/api/v1/company_members');
 }

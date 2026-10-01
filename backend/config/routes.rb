@@ -21,7 +21,7 @@ Rails.application.routes.draw do
       resource :company, only: %i[show update]
       resources :companies, only: %i[index]
       resources :users, only: %i[index update]
-      resources :company_members, only: %i[index create update]
+      resources :company_members, only: %i[index update]
 
       resources :contacts, only: %i[index show create update destroy]
       resources :loans, only: %i[index show create update] do
