@@ -13,7 +13,6 @@ type CompanyForm = {
   state: string;
   zip_code: string;
   website: string;
-  subdomain: string;
   logo: string;
 };
 
@@ -26,7 +25,6 @@ const emptyForm: CompanyForm = {
   state: '',
   zip_code: '',
   website: '',
-  subdomain: '',
   logo: ''
 };
 
@@ -39,6 +37,7 @@ function roleLabel(role: 'owner' | 'admin' | 'member') {
 export function Company() {
   const [activeTab, setActiveTab] = useState<'general' | 'members' | 'current_members'>('general');
   const [form, setForm] = useState<CompanyForm>(emptyForm);
+  const [subdomain, setSubdomain] = useState('');
   const [memberName, setMemberName] = useState('');
   const [memberEmail, setMemberEmail] = useState('');
   const [memberRole, setMemberRole] = useState<'owner' | 'admin' | 'member'>('member');
@@ -67,9 +66,9 @@ export function Company() {
           state: company.state ?? '',
           zip_code: company.zip_code ?? '',
           website: company.website ?? '',
-          subdomain: company.subdomain ?? '',
           logo: company.logo ?? ''
         });
+        setSubdomain(company.subdomain ?? '');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not load company details');
       } finally {
@@ -222,7 +221,7 @@ export function Company() {
             <label>State<input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></label>
             <label>ZIP code<input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} /></label>
           </div>
-          <div className="company-brand-fields"><div><span>Brand & portal</span><p>Customize how clients find and recognize your workspace.</p></div><div className="company-form-grid"><label>Subdomain<input value={form.subdomain} onChange={(e) => setForm({ ...form, subdomain: e.target.value })} /></label><label>Logo URL<input value={form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} /></label></div></div>
+          <div className="company-brand-fields"><div><span>Brand & portal</span><p>Customize how clients find and recognize your workspace.</p></div><div className="company-form-grid"><label>Subdomain<input value={subdomain || 'Not configured'} readOnly aria-readonly="true" /></label><label>Logo URL<input value={form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} /></label></div></div>
           {error && <div className="error">{error}</div>}
           {success && <div className="workspace-success"><Check size={16} />{success}</div>}
           <div className="workspace-form-actions"><button className="workspace-primary" disabled={saving}><Save size={16} />{saving ? 'Saving…' : 'Save company'}</button></div>

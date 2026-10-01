@@ -122,6 +122,7 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 .company-brand-fields > div:first-child > span { color: #4f475e; font-size: 11px; font-weight: 850; }
 .company-brand-fields > div:first-child > p { margin: 4px 0 0; color: #918a9a; font-size: 9px; }
 .company-brand-fields .company-form-grid { padding: 18px 0 0; }
+.company-brand-fields input[readonly] { color: #756d80; background: #f1edf6; cursor: default; }
 .workspace-form-actions { padding: 22px 26px 26px; display: flex; justify-content: flex-end; }
 .workspace-primary { min-height: 43px; padding: 0 17px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: white; border: 0; border-radius: 12px; background: linear-gradient(135deg, #7040e8, #8e54f3); box-shadow: 0 11px 24px rgba(111,60,225,.22); font-size: 11px; font-weight: 800; cursor: pointer; }
 .workspace-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 29px rgba(111,60,225,.29); }
