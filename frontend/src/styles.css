@@ -144,9 +144,14 @@ code { display: block; white-space: pre-wrap; background: #f5f7fb; padding: 12px
 .contact-form .workspace-form-actions { justify-content: stretch; }
 .contact-form .workspace-primary { width: 100%; }
 .contacts-directory td a { color: #7045d2; font-weight: 700; }
+.contact-cancel-edit { width: 31px; height: 31px; padding: 0; display: grid; place-items: center; color: #756d80; border: 0; border-radius: 9px; background: #f1edf6; cursor: pointer; }
 .contact-identity { display: flex; align-items: center; gap: 9px; }
 .contact-identity > span { width: 30px; height: 30px; flex: 0 0 auto; display: grid; place-items: center; color: #7040d3; border-radius: 9px; background: #eae2f8; font-size: 10px; font-weight: 850; }
 .contact-identity strong { color: #443d52; font-size: 11px; }
+.contact-row-actions { display: flex; justify-content: flex-end; gap: 5px; }
+.contact-row-actions button { width: 30px; height: 30px; padding: 0; display: grid; place-items: center; color: #7045d2; border: 0; border-radius: 8px; background: #f0eaff; cursor: pointer; }
+.contact-row-actions button.delete { color: #ac434b; background: #fae9ea; }
+.contact-row-actions button:disabled { opacity: .55; cursor: wait; }
 .contacts-empty { min-height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #918a9b; }
 .contacts-empty > div { width: 47px; height: 47px; margin-bottom: 3px; display: grid; place-items: center; color: #7546db; border-radius: 14px; background: #f0eaff; }
 .contacts-empty strong { color: #40384e; font-size: 13px; }

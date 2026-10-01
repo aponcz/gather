@@ -97,6 +97,14 @@ export function createContact(payload: { name: string; email: string; phone?: st
   return apiFetch<Contact>('/api/v1/contacts', { method: 'POST', body: JSON.stringify(payload) });
 }
 
+export function updateContact(id: string | number, payload: { name: string; email: string; phone?: string }) {
+  return apiFetch<Contact>(`/api/v1/contacts/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+}
+
+export function deleteContact(id: string | number) {
+  return apiFetch<void>(`/api/v1/contacts/${id}`, { method: 'DELETE' });
+}
+
 export function listLoans() {
   return apiFetch<Loan[]>('/api/v1/loans');
 }

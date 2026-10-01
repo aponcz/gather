@@ -23,7 +23,7 @@ Rails.application.routes.draw do
       resources :users, only: %i[index update]
       resources :company_members, only: %i[index create update]
 
-      resources :contacts, only: %i[index show create update]
+      resources :contacts, only: %i[index show create update destroy]
       resources :loans, only: %i[index show create update] do
         collection do
           post :bulk_create
