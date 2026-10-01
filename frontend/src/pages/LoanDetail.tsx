@@ -189,10 +189,10 @@ export function LoanDetail() {
             </div>}
           </section>
 
-          <section className="loan-show-panel">
+          {!import.meta.env.PROD && <section className="loan-show-panel">
             <div className="loan-side-heading"><span><Link2 size={17} /></span><div><h2>Client portal</h2><p>Secure document upload link</p></div></div>
             {portalUrl ? <><code className="loan-portal-url">{portalUrl}</code><Link className="loan-portal-open" to={portalUrl.replace(window.location.origin, '')}><ExternalLink size={15} /> Open client portal</Link></> : <p className="loan-side-empty">The portal link will be available when this loan is ready.</p>}
-          </section>
+          </section>}
         </aside>
       </div>
 
