@@ -90,10 +90,30 @@ needs database connectivity and migration permissions. Use migrations compatible
 with the previous version while ECS performs a rolling update.
 
 Production S3 access uses the AWS SDK credential provider chain. On ECS, assign a
-task role with the required bucket permissions and set `S3_BUCKET` and
-`AWS_REGION`. Do not set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+task role that allows `s3:PutObject` and `s3:GetObject` on
+`arn:aws:s3:::<S3_BUCKET>/*`, and set `S3_BUCKET` and `AWS_REGION`. Do not set
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
 `S3_ENDPOINT`, `S3_INTERNAL_ENDPOINT`, or `S3_FORCE_PATH_STYLE` in production.
 Those settings are only used by local environments backed by MinIO.
+
+Client uploads go directly from the browser to S3. Configure CORS on the upload
+bucket so the portal origins can send `PUT` requests. The stage bucket can use:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://*.gather.stage.goprotext.com"],
+    "AllowedMethods": ["GET", "HEAD", "PUT"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag", "x-amz-request-id", "x-amz-id-2"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Use the corresponding portal domain for each environment. S3 presigned URLs use
+the permissions of the ECS task role that created them; generating a URL alone
+does not verify that the role can upload to the bucket.
 
 ## Email delivery
 

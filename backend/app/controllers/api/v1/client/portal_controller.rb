@@ -33,7 +33,7 @@ module Api
           loan = find_accessible_loan_by_request_item(params[:id])
           item = loan.request_items.find(params[:id])
           key = "company-#{item.company.id}/loan-#{item.loan.id}/request-#{item.id}/#{SecureRandom.uuid}-#{params.require(:filename)}"
-          url = StorageService.new.presigned_upload_url(key: key, content_type: params.require(:content_type))
+          url = StorageService.new.presigned_upload_url(key: key)
           render json: { upload_url: url, storage_key: key }
         end
 

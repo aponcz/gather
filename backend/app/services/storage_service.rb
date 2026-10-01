@@ -5,9 +5,9 @@ class StorageService
     @resource = Aws::S3::Resource.new(client: @client)
   end
 
-  def presigned_upload_url(key:, content_type:, expires_in: 15.minutes.to_i)
+  def presigned_upload_url(key:, expires_in: 15.minutes.to_i)
     object = @resource.bucket(@bucket).object(key)
-    object.presigned_url(:put, expires_in: expires_in, content_type: content_type)
+    object.presigned_url(:put, expires_in: expires_in)
   end
 
   def presigned_download_url(key:, expires_in: 15.minutes.to_i)
