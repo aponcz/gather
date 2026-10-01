@@ -54,7 +54,7 @@ export function Layout() {
           <NavLink to="/loans/new"><Plus size={17} /><span>New loan</span></NavLink>
           <NavLink to="/contacts"><ContactRound size={17} /><span>Contacts</span></NavLink>
           <NavLink to="/company"><Building2 size={17} /><span>Company</span></NavLink>
-          <NavLink to="/client"><ShieldCheck size={17} /><span>Client portal</span></NavLink>
+          {!import.meta.env.PROD && <NavLink to="/client"><ShieldCheck size={17} /><span>Client portal</span></NavLink>}
           {user && companies.length > 1 && <NavLink to="/switch-company"><Repeat2 size={17} /><span>Switch company</span></NavLink>}
           {canAccessAdminDashboard && <><span className="sidebar-label sidebar-admin-label">Administration</span><NavLink to="/admin"><LayoutDashboard size={17} /><span>Admin dashboard</span></NavLink></>}
         </nav>
