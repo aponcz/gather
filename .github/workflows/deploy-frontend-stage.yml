@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - feature/sendgrid-integration
+      - feature/connect-to-s3
   workflow_dispatch:
 
 permissions:

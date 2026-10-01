@@ -66,5 +66,11 @@ export async function uploadToPresignedUrl(url: string, file: File): Promise<voi
     headers: { 'Content-Type': file.type || 'application/octet-stream' },
     body: file
   });
-  if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
+  if (!response.ok) {
+    const responseBody = await response.text();
+    const s3Code = responseBody.match(/<Code>([^<]+)<\/Code>/)?.[1];
+    const s3Message = responseBody.match(/<Message>([^<]+)<\/Message>/)?.[1];
+    const details = [s3Code, s3Message].filter(Boolean).join(': ');
+    throw new Error(`Upload failed (${response.status})${details ? `: ${details}` : ''}`);
+  }
 }
